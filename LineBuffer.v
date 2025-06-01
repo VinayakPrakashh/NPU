@@ -38,4 +38,7 @@ always @(posedge i_clk or posedge i_rst) begin
 
 o_data <= {buffer[rdptr], buffer[rdptr+1], buffer[rdptr+2]};
   
+always @(posedge i_clk) begin
+    
+end
 endmodule
