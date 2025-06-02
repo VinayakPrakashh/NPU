@@ -68,7 +68,12 @@ always @(posedge i_clk or posedge i_rst) begin
         end
         CALC: begin 
             sum1 <= sum1 + (shared_buffer1[i][j] * kernel[i][j]);
-            sum2 <= sum2 + (shared_buffer2[i+][j] * kernel[i][j]);
+            if(stride == 1) begin
+            sum2 <= sum2 + (shared_buffer2[i+1][j] * kernel[i][j]);
+            end
+            else if(stride == 2) begin
+            sum2 <= sum2 + (shared_buffer2[i+2][j] * kernel[i][j]);
+            end
             if(j == 3 - 1) begin
                 j = 0;
                 if(i == 3 - 1) begin
