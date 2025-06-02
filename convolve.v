@@ -10,14 +10,13 @@ module convolve (
 );
 
 reg [7:0] kernel [3:0][3:0];
-reg [9:0] i;
+reg [9:0] i,j;
 reg [3:0] i_k, j_k;
 reg [7:0] sum1,sum2;
 
 parameter IDLE = 3'b000, READ_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, WRITE = 3'b011;
 
 reg [2:0] state, next_state;
-reg done;
 reg [7:0] shared_buffer1 [2:0][3:0]; // Shared buffer for 3x4 window
 reg [7:0] shared_buffer2 [2:0][4:0]; // Shared buffer for 3x5 window
 always @(posedge i_clk or posedge i_rst) begin
@@ -30,7 +29,6 @@ always @(posedge i_clk or posedge i_rst) begin
         i_k <= 0;
         sum1 <= 0;
         sum2 <= 0;
-        done <= 0;
             end
         READ_KERNEL: begin
             i_kernal_start_addr <= i_kernal_start_addr + 1;
@@ -69,7 +67,7 @@ always @(posedge i_clk or posedge i_rst) begin
         CALC: begin 
             sum1 <= sum1 + (shared_buffer1[i][j] * kernel[i][j]);
             if(stride == 1) begin
-            sum2 <= sum2 + (shared_buffer2[i+1][j] * kernel[i][j]);
+            sum2 <= sum2 + (shared_buffer1[i+1][j] * kernel[i][j]);
             end
             else if(stride == 2) begin
             sum2 <= sum2 + (shared_buffer2[i+2][j] * kernel[i][j]);
