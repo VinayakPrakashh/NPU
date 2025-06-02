@@ -10,7 +10,7 @@ module convolve (
     input [2:0] stride,
 );
 
-reg [7:0] kernel [3:0][3:0];
+reg [7:0] kernel [2:0][2:0];
 reg [9:0] i,j;
 reg [3:0] i_k, j_k;
 reg [7:0] sum1,sum2;
@@ -18,8 +18,8 @@ reg [7:0] sum1,sum2;
 parameter IDLE = 3'b000, READ_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, WRITE = 3'b011;
 
 reg [2:0] state, next_state;
-reg [7:0] window1 [2:0][2:0]; // Shared buffer for 3x4 window
-reg [7:0] window2 [2:0][2:0]; // Shared buffer for 3x5 window
+reg [7:0] window1 [2:0][2:0]; // Shared buffer for 3x3 window
+reg [7:0] window2 [2:0][2:0]; // Shared buffer for 3x3 window
 reg [7:0] src1_addr2,src1_addr1;
 always @(posedge i_clk or posedge i_rst) begin
 
@@ -33,6 +33,7 @@ always @(posedge i_clk or posedge i_rst) begin
         sum2 <= 0;
         src1_addr2 <= i_src1_start_addr + stride;
         src1_addr1 <= i_src1_start_addr;
+        
             end
         READ_KERNEL: begin
             i_kernal_start_addr <= i_kernal_start_addr + 1;
@@ -68,6 +69,7 @@ always @(posedge i_clk or posedge i_rst) begin
                 j <= j + 1;
             end
         end
+
 
         endcase
 end
