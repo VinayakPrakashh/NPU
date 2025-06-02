@@ -217,3 +217,47 @@ module matrix_conv(
 	);
 
 endmodule
+        // CALC: begin 
+        //     sum1 <= sum1 + (shared_buffer1[i][j] * kernel[i][j]);
+        //     if(stride == 1) begin
+        //     sum2 <= sum2 + (shared_buffer1[i+1][j] * kernel[i][j]);
+        //     end
+        //     else if(stride == 2) begin
+        //     sum2 <= sum2 + (shared_buffer2[i+2][j] * kernel[i][j]);
+        //     end
+        //     if(j == 3 - 1) begin
+        //         j = 0;
+        //         if(i == 3 - 1) begin
+        //             i = 0;
+        //         end
+        //         else begin
+        //             i = i + 1;
+        //         end
+        //     end
+        //     else begin 
+        //         j<= j + 1;
+
+        //     end
+        // end
+                // LOAD_WINDOWS: begin
+        //         if (stride == 1) begin
+        //         shared_buffer1[i][j] <= i_src1_data;
+        //     end else if (stride == 2) begin
+        //         shared_buffer2[i][j] <= i_src1_data;
+        //     end
+        //     if(j == 3 - 1 + stride) begin
+        //         j <= 0;
+        //         if(i == 3-1) begin
+        //             next_state <= CALC;
+        //             i <= 0;
+        //         end
+        //         else begin
+        //             i_src1_start_addr <= i_src1_start_addr + 28 - j;
+        //             i <= i + 1;
+        //         end
+        //     end
+        //     else begin
+        //         i_src1_start_addr <= i_src1_start_addr + 1;
+        //         j <= j + 1;
+        //     end
+        // end
