@@ -48,7 +48,6 @@ always @(posedge i_clk or posedge i_rst) begin
         end
 
         LOAD_WINDOWS: begin
-
                 window1[i][j] <= i_src1_data1;
                 window2[i][j] <= i_src1_data2;
 
@@ -60,7 +59,7 @@ always @(posedge i_clk or posedge i_rst) begin
                 end
                 else begin
                     src1_addr1 <= src1_addr1 + 28 - j;
-                    src1_addr2 <= src1_addr1 + 28 - j+ stride;
+                    src1_addr2 <= src1_addr1 + 28 - j + stride;
                     i <= i + 1;
                 end
             end
