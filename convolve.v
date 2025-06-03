@@ -10,9 +10,9 @@ module convolve (
     input [9:0] dest_address1,
     input [9:0] dest_address2,
     input [2:0] i_stride,
-    output reg [7:0] sum1,
-    output reg [7:0] sum2,
-    output reg done
+    output reg [7:0] o_sum1,
+    output reg [7:0] o_sum2,
+    output reg o_done
 );
 
 reg [7:0] kernal [2:0][2:0];
@@ -33,9 +33,9 @@ always @(posedge i_clk or posedge i_rst) begin
         j <= 0;
         j_k <= 0;
         i_k <= 0;
-        sum1 <= 0;
-        sum2 <= 0;
-        done <= 0;
+        o_sum1 <= 0;
+        o_sum2 <= 0;
+        o_done <= 0;
         src1_addr2 <= i_src1_start_addr + i_stride;
         src1_addr1 <= i_src1_start_addr;
         kernal_addr <= i_kernal_start_addr;
@@ -77,8 +77,8 @@ always @(posedge i_clk or posedge i_rst) begin
         end
         CALC: begin
 
-                    sum1 <= sum1 + (window1[i_k][j_k] * kernal[i_k][j_k]);
-                    sum2 <= sum2 + (window2[i_k][j_k] * kernal[i_k][j_k]);
+                    o_sum1 <= o_sum1 + (window1[i_k][j_k] * kernal[i_k][j_k]);
+                    o_sum2 <= o_sum2 + (window2[i_k][j_k] * kernal[i_k][j_k]);
             if( (i_k == 2) && (j_k == 2)) begin
                 next_state <= WRITE;
             end else if (i_k == 2) begin
@@ -89,7 +89,11 @@ always @(posedge i_clk or posedge i_rst) begin
             end
             end
         WRITE: begin
-            
+            o_done <= 1;
+            next_state <= IDLE;
+        end
+        default: begin
+            next_state <= IDLE; // Default case to handle unexpected states
         end
         endcase
 end
