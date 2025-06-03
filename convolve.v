@@ -26,8 +26,51 @@ reg [7:0] window1 [2:0][2:0]; // Shared buffer for 3x3 window
 reg [7:0] window2 [2:0][2:0]; // Shared buffer for 3x3 window
 reg [9:0] src1_addr2,src1_addr1,kernal_addr;
 always @(posedge i_clk or posedge i_rst) begin
+    if (i_rst)
+        state <= IDLE;
+    else
+        state <= next_state;
+end
+always @(*) begin
+case(state)
+    IDLE: begin
+        if (i_start) begin
+            next_state <= READ_KERNEL;
+        end else begin
+            next_state <= IDLE;
+        end
+    end
+    READ_KERNEL: begin
+        if(i_k == 2 && j_k == 2) begin
+            next_state <= LOAD_WINDOWS;
+            end
+        else begin
+            next_state <= READ_KERNEL;
+        end
+    end
+    LOAD_WINDOWS: begin
+ if(i == 3 - 1 && j == 3 - 1) begin
+                next_state <= CALC;
+            end else begin
+                next_state <= LOAD_WINDOWS;
+            end
+    end
+    CALC: begin
+        if(i_k == 2 && j_k == 2) begin
+            next_state <= WRITE;
+        end else begin
+            next_state <= CALC;
+        end
+    end
+    WRITE: begin
+        next_state <= IDLE;
+    end
+    default: next_state <= IDLE;
+    endcase
+end
+always @(posedge i_clk ) begin
 
-        case(state) 
+     case(state) 
         IDLE: begin
         i <= 0;
         j <= 0;
@@ -45,7 +88,8 @@ always @(posedge i_clk or posedge i_rst) begin
             kernal_addr <= kernal_addr + 1;
         kernal[i_k][j_k] <= i_kernal_data;
             if( (i_k == 2) && (j_k == 2)) begin
-                next_state <= LOAD_WINDOWS;
+             i_k <= 0;
+             j_k <= 0;
             end else if (i_k == 2) begin
                 j_k <= j_k + 1;
                 i_k <= 0;
@@ -61,7 +105,6 @@ always @(posedge i_clk or posedge i_rst) begin
                  if(j == 3 - 1) begin
                 j <= 0;
                 if(i == 3-1) begin
-                    next_state <= CALC;
                     i <= 0;
                 end
                 else begin
@@ -80,20 +123,15 @@ always @(posedge i_clk or posedge i_rst) begin
                     o_sum1 <= o_sum1 + (window1[i_k][j_k] * kernal[i_k][j_k]);
                     o_sum2 <= o_sum2 + (window2[i_k][j_k] * kernal[i_k][j_k]);
             if( (i_k == 2) && (j_k == 2)) begin
-                next_state <= WRITE;
+                j_k <= 0;
+                i_k <= 0;
+                o_done <= 1;
             end else if (i_k == 2) begin
                 j_k <= j_k + 1;
                 i_k <= 0;
             end else begin
                 i_k <= i_k + 1;
             end
-            end
-        WRITE: begin
-            o_done <= 1;
-            next_state <= IDLE;
-        end
-        default: begin
-            next_state <= IDLE; // Default case to handle unexpected states
         end
         endcase
 end
