@@ -24,4 +24,11 @@ always @(posedge clk) begin
 end
    assign data_out1 = ram[rd_addr1];
    assign data_out2 = ram[rd_addr2];
+       // Initialize RAM with values from 1 to 5
+    integer i;
+    initial begin
+        for (i = 0; i < ROWS*COLS; i = i + 1) begin
+            ram[i] = (i % 5) + 1;  // Repeats 1, 2, 3, 4, 5
+        end
+    end
 endmodule
