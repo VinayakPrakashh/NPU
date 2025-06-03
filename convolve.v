@@ -83,10 +83,7 @@ always @(posedge i_clk or posedge i_rst) begin
                 i_k <= i_k + 1;
             end
             end
-            // Output the result or store it in a register
-            next_state <= IDLE; // Go back to IDLE after calculation
-
-
+            
         endcase
 end
 
