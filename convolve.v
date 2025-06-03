@@ -79,9 +79,7 @@ always @(posedge i_clk ) begin
         o_sum1 <= 0;
         o_sum2 <= 0;
         o_done <= 0;
-        src1_addr2 <= i_src1_start_addr + i_stride;
-        src1_addr1 <= i_src1_start_addr;
-        kernal_addr <= i_kernal_start_addr;
+
         
             end
         READ_KERNEL: begin
@@ -90,6 +88,9 @@ always @(posedge i_clk ) begin
             if( (i_k == 2) && (j_k == 2)) begin
              i_k <= 0;
              j_k <= 0;
+                     src1_addr2 <= i_src1_start_addr + i_stride;
+        src1_addr1 <= i_src1_start_addr;
+        kernal_addr <= i_kernal_start_addr;
             end else if (i_k == 2) begin
                 j_k <= j_k + 1;
                 i_k <= 0;
