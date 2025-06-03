@@ -7,15 +7,19 @@ module convolve (
     input [7:0] i_kernal_data,
     input [9:0] i_src1_start_addr,
     input [9:0] i_kernal_start_addr,
+    input [9:0] dest_address1,
+    input [9:0] dest_address2,
     input [2:0] i_stride,
+    output reg [7:0] sum1,
+    output reg [7:0] sum2,
+    output reg done
 );
 
 reg [7:0] kernal [2:0][2:0];
 reg [9:0] i,j;
 reg [3:0] i_k, j_k;
-reg [7:0] sum1,sum2;
 
-parameter IDLE = 3'b000, READ_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALC = 3'b011;
+parameter IDLE = 3'b000, READ_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALC = 3'b011,WRITE = 3'b100;
 
 reg [2:0] state, next_state;
 reg [7:0] window1 [2:0][2:0]; // Shared buffer for 3x3 window
@@ -31,7 +35,8 @@ always @(posedge i_clk or posedge i_rst) begin
         i_k <= 0;
         sum1 <= 0;
         sum2 <= 0;
-        src1_addr2 <= i_src1_start_addr + stride;
+        done <= 0;
+        src1_addr2 <= i_src1_start_addr + i_stride;
         src1_addr1 <= i_src1_start_addr;
         kernal_addr <= i_kernal_start_addr;
         
@@ -61,7 +66,7 @@ always @(posedge i_clk or posedge i_rst) begin
                 end
                 else begin
                     src1_addr1 <= src1_addr1 + 28 - j;
-                    src1_addr2 <= src1_addr1 + 28 - j + stride;
+                    src1_addr2 <= src1_addr1 + 28 - j + i_stride;
                     i <= i + 1;
                 end
             end
@@ -75,7 +80,7 @@ always @(posedge i_clk or posedge i_rst) begin
                     sum1 <= sum1 + (window1[i_k][j_k] * kernal[i_k][j_k]);
                     sum2 <= sum2 + (window2[i_k][j_k] * kernal[i_k][j_k]);
             if( (i_k == 2) && (j_k == 2)) begin
-                next_state <= LOAD_WINDOWS;
+                next_state <= WRITE;
             end else if (i_k == 2) begin
                 j_k <= j_k + 1;
                 i_k <= 0;
@@ -83,7 +88,9 @@ always @(posedge i_clk or posedge i_rst) begin
                 i_k <= i_k + 1;
             end
             end
+        WRITE: begin
             
+        end
         endcase
 end
 
