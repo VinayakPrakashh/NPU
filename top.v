@@ -11,9 +11,9 @@ module top(
     output [7:0] o_sum2
 );
 
-    wire [7:0] i_src1_data1, i_src1_data2, i_kernal_data;
+    wire [7:0] i_src1_data1, i_src1_data2;
     wire [9:0] dest_address1, dest_address2;
-    wire [9:0] src1_addr1, src1_addr2, kernal_addr;
+    wire [9:0] src1_addr1, src1_addr2;
     // Instantiate the RAM module
     ram #(
         .ROWS(28),
@@ -37,7 +37,6 @@ module top(
         .i_start(i_start),
         .i_src1_data1(i_src1_data1),
         .i_src1_data2(i_src1_data2),
-        .i_kernal_data(i_kernal_data),
         .i_src1_start_addr(i_src1_start_addr),
         .i_kernal_start_addr(i_kernal_start_addr),
         .dest_address1(dest_address1),

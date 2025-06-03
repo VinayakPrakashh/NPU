@@ -4,7 +4,6 @@ module convolve (
     input i_start,
     input [7:0] i_src1_data1,
     input [7:0] i_src1_data2,
-    input [7:0] i_kernal_data,
     input [9:0] i_src1_start_addr,
     input [9:0] i_kernal_start_addr,
     input [9:0] dest_address1,
@@ -20,6 +19,7 @@ module convolve (
 reg [7:0] kernal [2:0][2:0];
 reg [9:0] i,j;
 reg [3:0] i_k, j_k;
+wire [7:0] src1_src2_data;
 
 parameter IDLE = 3'b000, READ_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALC = 3'b011,WRITE = 3'b100;
 reg addr_switch;
@@ -28,10 +28,10 @@ reg [7:0] window1 [2:0][2:0]; // Shared buffer for 3x3 window
 reg [7:0] window2 [2:0][2:0]; // Shared buffer for 3x3 window
 reg [9:0] kernal_addr,src1_addr1;
 assign src1_src2_addr1 = (addr_switch) ? kernal_addr : src1_addr1;
-
 always @(posedge i_clk or posedge i_rst) begin
     if (i_rst)
         state <= IDLE;
+   
     else
         state <= next_state;
 end
@@ -40,8 +40,10 @@ case(state)
     IDLE: begin
         if (i_start) begin
             next_state <= READ_KERNEL;
+
         end else begin
             next_state <= IDLE;
+    
         end
     end
     READ_KERNEL: begin
@@ -92,7 +94,7 @@ always @(posedge i_clk ) begin
         READ_KERNEL: begin
             addr_switch <= 1;
             kernal_addr <= kernal_addr + 1;
-        kernal[i_k][j_k] <= i_kernal_data;
+        kernal[i_k][j_k] <= i_src1_data1;
             if( (i_k == 2) && (j_k == 2)) begin
              i_k <= 0;
              j_k <= 0;
