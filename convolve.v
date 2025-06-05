@@ -19,7 +19,6 @@ module convolve (
 reg [7:0] kernal [2:0][2:0];
 reg [9:0] i,j;
 reg [3:0] i_k, j_k;
-wire [7:0] src1_src2_data;
 
 parameter IDLE = 3'b000, READ_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALC = 3'b011,WRITE = 3'b100;
 reg addr_switch;
