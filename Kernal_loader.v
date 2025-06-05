@@ -4,8 +4,9 @@ module load_kernal #(
     parameter WEIGHT_WIDTH = 8
 ) (
     input i_clk,
+    input i_rst,
     input i_start,
-    input [2:0] i_kernal_size, // Size of the kernel (3x3, 5x5, etc.)
+    input [5:0] i_kernal_element_size, // Size of the kernel (3x3, 5x5, etc.)
     input [BRAM_ADDR_WIDTH-1:0] i_kernal_start_addr,
     input [BRAM_ADDR_WIDTH-1:0] i_kernal_data, // Data to write to the kernel
     output reg wr_en, // Write enable signal for the kernel
@@ -15,9 +16,12 @@ module load_kernal #(
     output reg o_done // Signal indicating the kernel loading is done
 );
 
-parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, DONE = 3'b010;
+parameter IDLE = 2'b00, LOAD_KERNEL = 2'b01, DONE = 2'b10;
 reg [1:0] state;
-always @(posedge clk) begin
+always @(posedge i_rst or posedge i_clk) begin
+    if(i_rst) begin
+        state <= IDLE; // Reset state to IDLE on reset
+    end else begin
     case(state)
     IDLE: begin
         if (i_start) begin
@@ -32,15 +36,26 @@ always @(posedge clk) begin
             o_kernal_reg_addr <= 0; // Reset kernel register address
         end
     end
-    READ_KERNEL: begin
-        
+    LOAD_KERNEL: begin
+        o_kernal_reg_addr <= o_kernal_reg_addr + 1; // Set kernel register address
+        o_bram_address <= o_bram_address + 1; // Increment BRAM address
+        if(o_kernal_reg_addr == i_kernal_element_size) begin
+            state <= DONE;
+        end else begin
+            state <= LOAD_KERNEL; // Continue loading kernel data
+        end
     end
+
     DONE: begin
         wr_en <= 1'b0; // Disable writing to kernel
         o_done <= 1'b1; // Set done signal
         state <= IDLE; // Reset state to idle for next operation
     end
+    default: begin
+        state <= IDLE; // Default case to handle unexpected states
+    end
     endcase
+    end
 end
-
+assign o_kernal_data =  i_kernal_data; // Output kernel data when writing
 endmodule
