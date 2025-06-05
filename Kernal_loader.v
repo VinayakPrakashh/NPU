@@ -8,7 +8,7 @@ module load_kernal #(
     input i_start,
     input [5:0] i_kernal_element_size, // Size of the kernel (3x3, 5x5, etc.)
     input [BRAM_ADDR_WIDTH-1:0] i_kernal_start_addr,
-    input [BRAM_ADDR_WIDTH-1:0] i_kernal_data, // Data to write to the kernel
+    input [WEIGHT_WIDTH-1:0] i_kernal_data, // Data to write to the kernel
     output reg wr_en, // Write enable signal for the kernel
     output reg [BRAM_ADDR_WIDTH-1:0] o_bram_address, // Address to read the kernel from BRAM
     output reg [KERNEL_REG_ADDR_WIDTH-1:0] o_kernal_reg_addr, // Address to read the kernel
