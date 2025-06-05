@@ -19,4 +19,13 @@ always @(posedge i_clk) begin
     end
 end
 assign rd_data = bram[rd_addr]; // Read data from BRAM   
+integer i;
+initial begin
+    for (i = 0; i < 100; i = i + 1) begin
+        bram[i] = (i % 5) + 1;  // Cycles through 1, 2, 3, 4, 5
+    end
+    for (i = 100; i < BRAM_DEPTH; i = i + 1) begin
+        bram[i] = 0;  // Zero out the rest
+    end
+    end
 endmodule
