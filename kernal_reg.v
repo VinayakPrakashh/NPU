@@ -1,6 +1,6 @@
 module kernal_reg #(
-    parameter KERNEL_SIZE = 3,
-    parameter KERNEL_ADDR_WIDTH = 5,
+    parameter KERNEL_REG_SIZE = 64,
+    parameter KERNEL_ADDR_WIDTH = 6,
     parameter WEIGHT_WIDTH = 8
 
 ) (
@@ -13,7 +13,7 @@ module kernal_reg #(
     output [WEIGHT_WIDTH-1:0] rd_data // data read from the kernel);
 );
 
-reg [7:0] kernal [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Kernel buffer
+reg [7:0] kernal [KERNEL_REG_SIZE-1:0]; // Kernel buffer
 
 always @(posedge i_clk) begin
     if(wr_en) begin
