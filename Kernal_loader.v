@@ -1,0 +1,46 @@
+module load_kernal #(
+    parameter KERNEL_REG_ADDR_WIDTH = 5, //3*3 kernal
+    parameter BRAM_ADDR_WIDTH = 10, // 28*28 for input image
+    parameter WEIGHT_WIDTH = 8
+) (
+    input i_clk,
+    input i_start,
+    input [2:0] i_kernal_size, // Size of the kernel (3x3, 5x5, etc.)
+    input [BRAM_ADDR_WIDTH-1:0] i_kernal_start_addr,
+    input [BRAM_ADDR_WIDTH-1:0] i_kernal_data, // Data to write to the kernel
+    output reg wr_en, // Write enable signal for the kernel
+    output reg [BRAM_ADDR_WIDTH-1:0] o_bram_address, // Address to read the kernel from BRAM
+    output reg [KERNEL_REG_ADDR_WIDTH-1:0] o_kernal_reg_addr, // Address to read the kernel
+    output [WEIGHT_WIDTH-1:0] o_kernal_data, // Data read from the kernel
+    output reg o_done // Signal indicating the kernel loading is done
+);
+
+parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, DONE = 3'b010;
+reg [1:0] state;
+always @(posedge clk) begin
+    case(state)
+    IDLE: begin
+        if (i_start) begin
+            state <= LOAD_KERNEL;
+            wr_en <= 1'b1; // Enable writing to kernel
+            o_bram_address <= i_kernal_start_addr; // Start address for kernel data
+        end else begin
+            state <= IDLE;
+            wr_en <= 1'b0; // Disable writing to kernel
+            o_bram_address <= 0; // Reset address
+            o_done <= 1'b0; // Reset done signal
+            o_kernal_reg_addr <= 0; // Reset kernel register address
+        end
+    end
+    READ_KERNEL: begin
+        
+    end
+    DONE: begin
+        wr_en <= 1'b0; // Disable writing to kernel
+        o_done <= 1'b1; // Set done signal
+        state <= IDLE; // Reset state to idle for next operation
+    end
+    endcase
+end
+
+endmodule
