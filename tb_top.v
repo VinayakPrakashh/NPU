@@ -6,7 +6,8 @@ module tb_npt_top;
     reg i_clk;
     reg i_rst;
     reg i_start;
-    wire [7:0] kernalreg [63:0];
+    wire [2:0] state;
+    wire [5:0] kernal_reg_wr_address; // Expose kernel register write address for monitoring
 
     // Output from npt_top
     wire o_done;
@@ -16,9 +17,9 @@ module tb_npt_top;
         .i_rst(i_rst),
         .i_start(i_start),
         .o_done(o_done),
-        .kernalreg(kernalreg) // Expose kernel register for monitoring
+        .state(state),
+        .kernal_reg_wr_address(kernal_reg_wr_address)   
     );
-    assign kernalreg = uut.kernal_reg_inst.kernal; // Expose kernel register for monitoring
     // Clock Generation: 100 MHz
     initial begin
         i_clk = 0;

@@ -39,17 +39,21 @@ always @(posedge i_rst or posedge i_clk) begin
     LOAD_KERNEL: begin
         o_kernal_reg_addr <= o_kernal_reg_addr + 1; // Set kernel register address
         o_bram_address <= o_bram_address + 1; // Increment BRAM address
-        if(o_kernal_reg_addr == i_kernal_element_size) begin
+        if(o_kernal_reg_addr == i_kernal_element_size-1) begin
             state <= DONE;
+            wr_en <= 1'b0; // Disable writing to kernel
+            o_kernal_reg_addr <= 0; // Reset kernel register address
+            o_bram_address <= 0; // Reset BRAM address
         end else begin
             state <= LOAD_KERNEL; // Continue loading kernel data
         end
     end
 
     DONE: begin
-        wr_en <= 1'b0; // Disable writing to kernel
+        
         o_done <= 1'b1; // Set done signal
         state <= IDLE; // Reset state to idle for next operation
+
     end
     default: begin
         state <= IDLE; // Default case to handle unexpected states

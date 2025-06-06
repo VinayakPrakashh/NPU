@@ -2,7 +2,10 @@ module npt_top (
     input i_clk,
     input i_rst,
     input i_start,
-    output o_done
+    output o_done,
+    output [2:0] state, // Expose kernel register for monitoring
+    output [5:0] kernal_reg_wr_address // Expose kernel register write address for monitoring]
+
 );
 
 wire [7:0] i_kernal_data; // Data read from BRAM
@@ -32,8 +35,8 @@ load_kernal #(
     .i_clk(i_clk),
     .i_rst(i_rst),
     .i_start(i_start),
-    .i_kernal_element_size(9), // Example size for kernel
-    .i_kernal_start_addr(10'b0000000000), // Example start address
+    .i_kernal_element_size(16), // Example size for kernel
+    .i_kernal_start_addr(15), // Example start address
     .i_kernal_data(i_kernal_data), // Example data to write to the kernel
     .wr_en(wr_en_kernal), // Write enable signal for the kernel
     .o_bram_address(bram_rd_addr), // Address to read the kernel from BRAM
@@ -54,5 +57,6 @@ kernal_reg #(
     .wr_data(kernal_data), // Data to write to the kernel
     .rd_data(rd_data_kernal) // Data read from the kernel
 );
+assign state = load_kernal_inst.state; // Expose kernel register state for monitoring
 
 endmodule
