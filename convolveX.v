@@ -66,5 +66,6 @@ always @(posedge i_clk) begin
         kernel[kernal_addr] <= i_kernel_data; // Store kernel data
     end
     endcase
+    LOAD
 end
 endmodule
