@@ -1,4 +1,4 @@
-module convolve #(
+module convolveX #(
     parameter KERNEL_SIZE = 3, // Size of the kernel
     parameter DATA_WIDTH = 8, // Width of the data
     parameter SRAM_ADDR_WIDTH = 4, // Address width for SRAM
@@ -20,6 +20,8 @@ module convolve #(
 parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALCULATE = 3'b011, WRITE_RESULT = 3'b100;
 
 reg [2:0] state, next_state;
+
+reg [7:0] kernel [KERNEL_SIZE*KERNEL_SIZE-1:0] // Kernel storage
 
 always @(posedge i_clk or posedge i_rst) begin
     if (i_rst) begin
@@ -44,13 +46,32 @@ always @(*) begin
         end
     end
     LOAD_KERNEL: begin
+    if (o_kernel_addr == KERNEL_SIZE * KERNEL_SIZE - 1) begin
+        next_state <= LOAD_WINDOWS; // Continue loading kernel data
+    end else begin
+        next_state <= LOAD_KERNEL; // Transition to LOAD_WINDOWS state
+    end
     end
     endcase
 end
 
 always @(posedge i_clk) begin
     case(state)
-    IDLE
+    IDLE : begin
+        o_done <= 1'b0; // Reset done signal
+        i_window1_addr <= 0; // Reset window1 address
+        i_window2_addr <= 0; // Reset window2 address
+        o_kernel_addr <= 0; // Reset kernel address
+    end
+    LOAD_KERNEL: begin
+        // Load kernel data from SRAM
+        o_kernel_addr <= o_kernel_addr + 1; // Increment kernel address
+        if (o_kernel_addr == KERNEL_SIZE * KERNEL_SIZE - 1) begin
+            next_state <= LOAD_WINDOWS; // Transition to LOAD_WINDOWS state
+        end else begin
+            next_state <= LOAD_KERNEL; // Stay in LOAD_KERNEL state
+        end
+    end
     endcase
 end
 endmodule
