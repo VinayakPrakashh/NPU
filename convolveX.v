@@ -66,6 +66,17 @@ always @(posedge i_clk) begin
         kernel[kernal_addr] <= i_kernel_data; // Store kernel data
     end
     endcase
-    LOAD
+    LOAD_WINDOWS: begin
+        if (i_window1_addr < SRAM_DEPTH - 1) begin
+            i_window1_addr <= i_window1_addr + 1; // Increment window1 address
+        end else begin
+            i_window1_addr <= 0; // Reset window1 address
+            if (i_window2_addr < SRAM_DEPTH - 1) begin
+                i_window2_addr <= i_window2_addr + 1; // Increment window2 address
+            end else begin
+                i_window2_addr <= 0; // Reset window2 address
+            end
+        end
+    end
 end
 endmodule
