@@ -16,6 +16,16 @@ module convolve #(
     output reg o_done // Signal indicating the convolution operation is done
 );
 
-alwa
+always @(posedge i_clk or posedge i_rst) begin
+    if (i_rst) begin
+        o_result <= 0; // Reset result on reset
+        o_done <= 0; // Reset done signal on reset
+    end else if (i_start) begin
+        // Perform convolution operation
+        o_result <= (i_window1_data * i_kernel_data) + (i_window2_data * i_kernel_data);
+        o_done <= 1; // Set done signal after operation
+    end else begin
+        o_done <= 0; // Clear done signal if not starting
+    end
 
 endmodule
