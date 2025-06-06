@@ -65,9 +65,9 @@ convolveX #(
         .i_clk(i_clk),
         .i_rst(i_rst),
         .i_start(i_start),
-        .i_window1_addr(0), // Example address mapping
+        .i_window1_addr(i_kernal_data), // Example address mapping
         .i_window1_data(0),
-        .i_window2_addr(0), // Example address mapping
+        .i_window2_addr(bram_rd_addr), // Example address mapping
         .i_window2_data(0),
         .o_kernel_addr(kernal_rd_addr), // Example address mapping
         .i_kernel_data(rd_data_kernal), // Example kernel data
