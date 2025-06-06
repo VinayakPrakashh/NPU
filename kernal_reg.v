@@ -22,5 +22,16 @@ always @(posedge i_clk) begin
 end
 
 assign rd_data = kernal[rd_addr]; // Read data from kernel
-
+initial begin
+    kernal[0] = 3;
+    kernal[1] = 1;
+    kernal[2] = 5;
+    kernal[3] = 2;
+    kernal[4] = 4;
+    kernal[5] = 2;
+    kernal[6] = 5;
+    kernal[7] = 1;
+    kernal[8] = 3;
+    // The rest can be zero or left uninitialized
+end
 endmodule
