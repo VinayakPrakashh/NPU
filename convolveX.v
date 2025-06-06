@@ -22,14 +22,33 @@ reg [2:0] state, next_state;
 
 always @(posedge i_clk or posedge i_rst) begin
     if (i_rst) begin
-        o_result <= 0; // Reset result on reset
-        o_done <= 0; // Reset done signal on reset
-    end else if (i_start) begin
-        // Perform convolution operation
-        o_result <= (i_window1_data * i_kernel_data) + (i_window2_data * i_kernel_data);
-        o_done <= 1; // Set done signal after operation
+        state <= IDLE; // Reset state to IDLE on reset
+        o_done <= 1'b0; // Reset done signal
     end else begin
-        o_done <= 0; // Clear done signal if not starting
+        state <= next_state; // Transition to the next state
     end
+    else begin
+        state <= next_state;
+    end
+end
 
+always @(*) begin
+    case(state) 
+
+    IDLE: begin
+        if (i_start) begin
+            next_state <= LOAD_KERNEL; // Transition to LOAD_KERNEL state
+        end else begin
+            next_state <= IDLE; // Stay in IDLE state
+        end
+    end
+    LOAD_KERNEL: begin
+    end
+    endcase
+end
+
+always @(posedge i_clk) begin
+    case(state)
+
+    endcase
 endmodule
