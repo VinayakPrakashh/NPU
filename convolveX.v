@@ -16,6 +16,10 @@ module convolve #(
     output reg o_done // Signal indicating the convolution operation is done
 );
 
+parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALCULATE = 3'b011, WRITE_RESULT = 3'b100;
+
+reg [2:0] state, next_state;
+
 always @(posedge i_clk or posedge i_rst) begin
     if (i_rst) begin
         o_result <= 0; // Reset result on reset
