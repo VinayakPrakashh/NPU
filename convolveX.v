@@ -16,6 +16,6 @@ module convolve #(
     output reg o_done // Signal indicating the convolution operation is done
 );
 
-
+alwa
 
 endmodule
