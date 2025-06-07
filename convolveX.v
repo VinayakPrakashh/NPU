@@ -16,14 +16,15 @@ module convolveX #(
     output reg o_done // Signal indicating the convolution operation is done
 );
 
-parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALCULATE = 3'b011, WRITE_RESULT = 3'b100;
+parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALCULATE = 3'b011, WRITE_RESULT = 3'b100,DONE = 3'b101;
 
-reg [2:0] state, next_state;
+reg [2:0] state, next_state,i;
 
 reg [7:0] kernel [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Kernel storage
 reg [3:0] kernal_addr,window_addr; // Address for kernel storage
 reg [7:0] window1 [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Window 1 storage
 reg [7:0] window2 [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Window 2 storage
+reg [15:0] sum1, sum2; // Sum for convolution results
 
 always @(posedge i_clk or posedge i_rst) begin
     if (i_rst) begin
@@ -59,10 +60,14 @@ always @(*) begin
     end
     CALCULATE: begin
         if (i == 9) begin
-            next_state <= DONE; // Transition to DONE state
+            next_state <= DONE;
+            o_done <= 1; // Transition to DONE state
         end else begin
             next_state <= CALCULATE; // Continue calculating convolution
         end
+    end
+    DONE: begin
+        next_state <= IDLE; // Reset state to IDLE for next operation
     end
     endcase
 end
@@ -75,6 +80,9 @@ always @(posedge i_clk) begin
         kernal_addr <= 0; // Reset kernel address
         window_addr <= 0; // Reset window address
         o_window_addr <= 0; // Reset output window address
+        sum1 <= 0; // Reset sum1
+        sum2 <= 0; // Reset sum2
+        i <= 0; // Reset index for convolution
     end
     LOAD_KERNEL: begin
         kernal_addr <= kernal_addr + 1; // Increment kernel address
