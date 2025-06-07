@@ -7,9 +7,8 @@ module convolveX #(
     input i_clk,
     input i_rst,
     input i_start, // Signal to start the convolution operation
-    output reg [SRAM_ADDR_WIDTH-1:0] i_window1_addr, // Address to read from SRAM
+    output reg [SRAM_ADDR_WIDTH-1:0] o_window_addr, // Address to read from SRAM
     input [DATA_WIDTH-1:0] i_window1_data, // Data read from SRAM
-    output reg [SRAM_ADDR_WIDTH-1:0] i_window2_addr, // Address to read from SRAM
     input [DATA_WIDTH-1:0] i_window2_data, // Data read from SRAM
     output reg [5:0] o_kernel_addr, // Address to write the kerne
     input [DATA_WIDTH-1:0] i_kernel_data, // Kernel data for convolution
@@ -22,7 +21,10 @@ parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALCULATE 
 reg [2:0] state, next_state;
 
 reg [7:0] kernel [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Kernel storage
-reg [3:0] kernal_addr; // Address for kernel storage
+reg [3:0] kernal_addr,window_addr; // Address for kernel storage
+reg [7:0] window1 [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Window 1 storage
+reg [7:0] window2 [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Window 2 storage
+
 always @(posedge i_clk or posedge i_rst) begin
     if (i_rst) begin
         state <= IDLE; // Reset state to IDLE on reset
@@ -59,24 +61,20 @@ always @(posedge i_clk) begin
         i_window2_addr <= 0; // Reset window2 address
         o_kernel_addr <= 0; // Reset kernel address
         kernal_addr <= 0; // Reset kernel address
+        window_addr <= 0; // Reset window address
+        o_window_addr <= 0; // Reset output window address
     end
     LOAD_KERNEL: begin
         kernal_addr <= kernal_addr + 1; // Increment kernel address
         o_kernel_addr <= o_kernel_addr + 1; // Increment kernel address
         kernel[kernal_addr] <= i_kernel_data; // Store kernel data
     end
-    endcase
     LOAD_WINDOWS: begin
-        if (i_window1_addr < SRAM_DEPTH - 1) begin
-            i_window1_addr <= i_window1_addr + 1; // Increment window1 address
-        end else begin
-            i_window1_addr <= 0; // Reset window1 address
-            if (i_window2_addr < SRAM_DEPTH - 1) begin
-                i_window2_addr <= i_window2_addr + 1; // Increment window2 address
-            end else begin
-                i_window2_addr <= 0; // Reset window2 address
-            end
+        window_addr <= window_addr + 1; // Increment window address
+        o_window_addr <= o_window_addr + 1; // Update output window address
+        window1[window_addr] <= i_window1_data; // Store window1 data
+        window2[window_addr] <= i_window2_data; // Store window2 data
         end
-    end
+    endcase
 end
 endmodule
