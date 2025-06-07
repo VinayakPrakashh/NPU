@@ -29,7 +29,7 @@ initial begin
     window1[4] = 4;
     window1[5] = 2;
     window1[6] = 5;
-    window[7] = 1;
+    window1[7] = 1;
     window1[8] = 3;
     // The rest can be left uninitialized or set to zero if desired
 end
