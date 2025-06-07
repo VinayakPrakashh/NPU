@@ -50,6 +50,13 @@ always @(*) begin
         next_state <= LOAD_KERNEL; // Transition to LOAD_WINDOWS state
     end
     end
+    LOAD_WINDOWS: begin
+        if (o_window_addr == KERNEL_SIZE * KERNEL_SIZE - 1) begin
+            next_state <= CALCULATE; // Transition to CALCULATE state
+        end else begin
+            next_state <= LOAD_WINDOWS; // Continue loading window data
+        end
+    end
     endcase
 end
 
@@ -57,8 +64,6 @@ always @(posedge i_clk) begin
     case(state)
     IDLE : begin
         o_done <= 1'b0; // Reset done signal
-        i_window1_addr <= 0; // Reset window1 address
-        i_window2_addr <= 0; // Reset window2 address
         o_kernel_addr <= 0; // Reset kernel address
         kernal_addr <= 0; // Reset kernel address
         window_addr <= 0; // Reset window address

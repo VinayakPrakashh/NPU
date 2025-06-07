@@ -4,13 +4,15 @@ module npt_top (
     input i_start,
     output o_done
 );
+wire [3:0] window_addr; // Address for the window
 wire [7:0] o_sum1; // Output sum from the convolution operation
 wire [7:0] i_kernal_data; // Data read from BRAM
 wire [9:0] bram_rd_addr; // Address to read from BRAM
 wire wr_en_kernal; // Write enable signal for the kernel
 wire [5:0] kernal_reg_wr_address,kernal_rd_addr; // Address to write to the kernel
 wire [7:0] kernal_data; // Data read from the kernel
-wire [7:0] rd_data_kernal; // Data read from the kernel
+wire [7:0] rd_data_kernal,rd_window1_data,rd_window2_data; // Data read from the kernel
+
 // // Instantiate the modules
 // bram0 #(
 //     .BRAM_ADDR_WIDTH(10),
@@ -65,15 +67,38 @@ convolveX #(
         .i_clk(i_clk),
         .i_rst(i_rst),
         .i_start(i_start),
-        .i_window1_addr(i_kernal_data), // Example address mapping
-        .i_window1_data(0),
-        .i_window2_addr(bram_rd_addr), // Example address mapping
-        .i_window2_data(0),
+        .i_window1_addr(window_addr), // Example address mapping
+        .i_window1_data(rd_window1_data),
+        .i_window2_data(rd_window2_data),
         .o_kernel_addr(kernal_rd_addr), // Example address mapping
         .i_kernel_data(rd_data_kernal), // Example kernel data
         .o_result(o_sum1), // Result of the convolution operation
         .o_done(o_done) // Signal indicating the convolution operation is done
     );
 
+window1_reg #(
+    .WINDOW_ELEMNT_SIZE(8),
+    .WINDOW_REG_SIZE(9), // Size of the window register
+    .ADDR_SIZE(4)
+) window1_reg_inst (
+    .i_clk(i_clk),
+    .wr_en(0), // Write enable signal
+    .wr_addr(kernal_reg_wr_address), // Address to write to the window
+    .rd_addr(window_addr), // Address to read from the window
+    .wr_data(kernal_data), // Data to write to the window
+    .rd_data(rd_window1_data) // Data read from the window (not used in this example)
+);
+window2_reg #(
+    .WINDOW_ELEMNT_SIZE(8),
+    .WINDOW_REG_SIZE(9), // Size of the window register
+    .ADDR_SIZE(4)
+) window2_reg_inst (
+    .i_clk(i_clk),
+    .wr_en(0), // Write enable signal
+    .wr_addr(kernal_reg_wr_address), // Address to write to the window
+    .rd_addr(window_addr), // Address to read from the window
+    .wr_data(kernal_data), // Data to write to the window
+    .rd_data(rd_window2_data) // Data read from the window (not used in this example)
+);
 
 endmodule
