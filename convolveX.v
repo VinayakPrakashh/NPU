@@ -57,6 +57,13 @@ always @(*) begin
             next_state <= LOAD_WINDOWS; // Continue loading window data
         end
     end
+    CALCULATE: begin
+        if (i == 9) begin
+            next_state <= DONE; // Transition to DONE state
+        end else begin
+            next_state <= CALCULATE; // Continue calculating convolution
+        end
+    end
     endcase
 end
 
@@ -80,6 +87,11 @@ always @(posedge i_clk) begin
         window1[window_addr] <= i_window1_data; // Store window1 data
         window2[window_addr] <= i_window2_data; // Store window2 data
         end
+    CALCULATE: begin
+        i <= i + 1; // 
+        sum1 <= sum1 + window1[i] * kernel[i]; // Perform convolution operation
+        sum2 <= sum2 + window2[i] * kernel[i]; // Perform convolution operation
+    end
     endcase
 end
 endmodule
