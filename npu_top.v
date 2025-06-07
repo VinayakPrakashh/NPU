@@ -2,7 +2,8 @@ module npt_top (
     input i_clk,
     input i_rst,
     input i_start,
-    output o_done
+    output o_done,
+    output [2:0] state // Expose the state for monitoring,
 );
 wire [3:0] window_addr; // Address for the window
 wire [7:0] o_sum1; // Output sum from the convolution operation
@@ -100,5 +101,7 @@ window2_reg #(
     .wr_data(kernal_data), // Data to write to the window
     .rd_data(rd_window2_data) // Data read from the window (not used in this example)
 );
+
+assign state = uut.convolveX_inst.state; // Expose convolution state for monitoring
 
 endmodule

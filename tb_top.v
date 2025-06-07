@@ -6,13 +6,15 @@ module tb_npt_top;
     reg i_rst;
     reg i_start;
     wire o_done;
+    wire [2:0] state;
 
     // Instantiate the DUT (Device Under Test)
     npt_top uut (
         .i_clk(i_clk),
         .i_rst(i_rst),
         .i_start(i_start),
-        .o_done(o_done)
+        .o_done(o_done),
+        .state(state)
     );
 
     // Clock generation: 10ns period

@@ -18,7 +18,8 @@ module convolveX #(
 
 parameter IDLE = 3'b000, LOAD_KERNEL = 3'b001, LOAD_WINDOWS = 3'b010, CALCULATE = 3'b011, WRITE_RESULT = 3'b100,DONE = 3'b101;
 
-reg [2:0] state, next_state,i;
+reg [2:0] state, next_state;
+reg[3:0] i;
 
 reg [7:0] kernel [KERNEL_SIZE*KERNEL_SIZE-1:0]; // Kernel storage
 reg [3:0] kernal_addr,window_addr; // Address for kernel storage
@@ -61,7 +62,7 @@ always @(*) begin
     CALCULATE: begin
         if (i == 9) begin
             next_state <= DONE;
-            o_done <= 1; // Transition to DONE state
+            
         end else begin
             next_state <= CALCULATE; // Continue calculating convolution
         end
@@ -100,6 +101,10 @@ always @(posedge i_clk) begin
         sum1 <= sum1 + window1[i] * kernel[i]; // Perform convolution operation
         sum2 <= sum2 + window2[i] * kernel[i]; // Perform convolution operation
     end
+    DONE : begin 
+        i <= 0; 
+        o_done <= 1'b1; // Set done signal    
+            end
     endcase
 end
 endmodule
