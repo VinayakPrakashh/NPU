@@ -21,18 +21,5 @@ end
 
 assign rd_data = window2[rd_addr]; // Read data from window
 
-initial begin
-    window2[0] = 3;
-    window2[1] = 1;
-    window2[2] = 5;
-    window2[3] = 2;
-    window2[4] = 4;
-    window2[5] = 2;
-    window2[6] = 5;
-    window2[7] = 1;
-    window2[8] = 3;
-    // The rest can be left uninitialized or set to zero if desired
-end
-
 
 endmodule
