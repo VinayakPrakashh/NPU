@@ -31,4 +31,7 @@ always @(posedge clk) begin
         buffer_row3[2] <= buffer_row3[1];
     end
 end
+assign rd_data_r1 = buffer_row1[2]; // Read data from LineBuffer row 1
+assign rd_data_r2 = buffer_row2[2]; // Read data from LineBuffer row 2
+assign rd_data_r3 = buffer_row3[2]; // Read data from LineBuffer row 3
 endmodule
