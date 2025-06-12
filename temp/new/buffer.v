@@ -32,4 +32,12 @@ end
 assign rd_data_r1 = buffer_row1[COLS-1]; // Read data from LineBuffer row 1
 assign rd_data_r2 = buffer_row2[COLS-1]; // Read data from LineBuffer row 2
 assign rd_data_r3 = buffer_row3[COLS-1]; // Read data from LineBuffer row 3
+initial begin
+    for (i = 0; i < COLS; i = i + 1) begin
+        buffer_row1[i] = (i % 5) + 1; // Values 1,2,3,4,5,1,2,3,4,5,...
+        buffer_row2[i] = ((i+1) % 5) + 1; // Values 2,3,4,5,1,2,3,4,5,1,...
+        buffer_row3[i] = ((i+2) % 5) + 1; // Values 3,4,5,1,2,3,4,5,1,2,...
+    end
+end
+
 endmodule
