@@ -29,7 +29,7 @@ always @(posedge clk) begin
         window1_3[2] <= window1_3[1];
     end
 end
-asign out1 = window1_1[2];
-asign out2 = window1_2[2]; 
-asign out3 = window1_3[2];
+assign out1 = window1_1[2];
+assign out2 = window1_2[2]; 
+assign out3 = window1_3[2];
 endmodule
