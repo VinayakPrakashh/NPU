@@ -1,5 +1,5 @@
 module window1 #(
-    parameter BIT_DEPTH = 8 // Width of the data stored in BRAM
+    parameter BIT_DEPTH = 8, // Width of the data stored in BRAM
 ) (
     input clk,
     input wr_en, // Write enable signal
@@ -29,7 +29,7 @@ always @(posedge clk) begin
         window1_3[2] <= window1_3[1];
     end
 end
-assign out1 = window1_1[2];
-assign out2 = window1_2[2]; 
-assign out3 = window1_3[2];
+asign out1 = window1_1[2];
+asign out2 = window1_2[2]; 
+asign out3 = window1_3[2];
 endmodule

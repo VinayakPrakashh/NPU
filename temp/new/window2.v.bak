@@ -1,5 +1,5 @@
 module window2 #(
-    parameter BIT_DEPTH = 8 // Width of the data stored in BRAM
+    parameter BIT_DEPTH = 8, // Width of the data stored in BRAM
 ) (
     input clk,
     input wr_en, // Write enable signal
