@@ -1,6 +1,6 @@
 module linebuffer #(
-    BIT_DEPTH = 8, // Width of the data stored in LineBuffer
-    COLS = 28 // Number of columns in the LineBuffer
+    parameter BIT_DEPTH = 8, // Width of the data stored in LineBuffer
+    parameter COLS = 28 // Number of columns in the LineBuffer
 ) (
     input clk,
     input wr_en, // Write enable signal

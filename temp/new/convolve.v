@@ -1,5 +1,5 @@
 module convolve #(
-    BIT_DEPTH = 8// Width of the data stored in BRAM
+    parameter BIT_DEPTH = 8// Width of the data stored in BRAM
 ) (
     input clk,
     input rst,
@@ -55,6 +55,7 @@ always @(*) begin
     endcase
 end
 always @(posedge clk) begin
+case(state)
     IDLE: begin
         shift_buffer <= 0; // Reset shift buffer
         done <= 0; // Reset done signal
@@ -74,6 +75,7 @@ always @(posedge clk) begin
             window1_en <= 0; // Disable window1 after first load
         end
     end
+	 endcase
 
 end
 

@@ -1,6 +1,6 @@
 module top #(
-    BIT_DEPTH = 8,
-	 COLS = 28
+    parameter BIT_DEPTH = 8,
+	 parameter COLS = 28
 ) (
     input clk,
     start,
