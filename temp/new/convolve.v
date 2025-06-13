@@ -63,17 +63,9 @@ case(state)
         window2_en <= 0; // Disable window2
         counter <= 0; // Reset counter
     end
-    LOAD: begin
+    INITIAL_LOAD: begin
         counter <= counter + 1; // Increment counter for loading data
         shift_buffer <= 1; // Enable shift buffer to load data
-        if(counter == stride) begin
-            window2_en <= 1;
-        end
-        if(counter < 2) begin
-            window1_en <= 1; // Enable window1 for loading data
-        end else begin
-            window1_en <= 0; // Disable window1 after first load
-        end
     end
 	 endcase
 
