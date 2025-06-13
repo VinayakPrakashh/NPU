@@ -31,6 +31,54 @@ always @(posedge clk or posedge rst) begin
         state <= next_state;
     end
 end
+always @(*) begin
+    case (state)
+        IDLE: begin
+            if (start) begin
+                next_state = INITIAL_LOAD;
+            end else begin
+                next_state = IDLE;
+            end
+        end
+        INITIAL_LOAD: begin
+            if (counter == (stride + 3)) begin // Adjusted for stride
+                next_state = CONVOLVE;
+            end else begin
+                next_state = INITIAL_LOAD; // Stay in LOAD state until counter reaches stride + 3
+            end
+        end
+        LOAD: begin
+
+        end
+        CONVOLVE: begin
+            next_state = DONE; // Transition to DONE after convolution
+        end
+        DONE: begin
+            done = 1; // Indicate that the operation is done
+            next_state = IDLE; // Return to IDLE state after completion
+        end
+        default: next_state = IDLE;
+    endcase
+end
+always @(posedge clk) begin
+    case (state)
+    IDLE: begin
+        shift_buffer <= 0; // Reset shift buffer
+        done <= 0; // Reset done signal
+        window_en <= 0; // Disable window
+        counter <= 0; // Reset counter
+    end
+    INITIAL_LOAD: begin
+        counter <= counter + 1; // Increment counter for loading data
+        shift_buffer <= 1; // Enable shift buffer to load data
+        window_en <= 1; // Enable window for initial load
+        if (counter == (stride + 3)) begin
+            shift_buffer <= 0; // Disable shift buffer after loading
+            window_en <= 0; // Disable window after initial load
+        end
+    end
+    endcase
+end
 
 mux_3_1 #( // mux to select the first column for stride 1
     .BIT_DEPTH(8)

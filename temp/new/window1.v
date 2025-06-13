@@ -10,9 +10,9 @@ module window1 #(
     output [BIT_DEPTH-1:0] out2,
     output [BIT_DEPTH-1:0] out3
 );
-reg [7:0] window1_1 [2:0];
-reg [7:0] window1_2 [2:0];
-reg [7:0] window1_3 [2:0];
+reg [7:0] window1_1 [0:2];
+reg [7:0] window1_2 [0:2];
+reg [7:0] window1_3 [0:2];
 
 always @(posedge clk) begin
     if(wr_en) begin
