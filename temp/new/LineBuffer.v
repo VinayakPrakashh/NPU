@@ -36,15 +36,16 @@ module LineBuffer #(
     end
     
     // Read output from a specific column (column 2 in this example)
-    assign rd_data_r1 = buffer_row1[2]; // Read data from LineBuffer row 1
-    assign rd_data_r2 = buffer_row2[2]; // Read data from LineBuffer row 2
-    assign rd_data_r3 = buffer_row3[2]; // Read data from LineBuffer row 3
+    assign rd_data_r1 = buffer_row1[27]; // Read data from LineBuffer row 1
+    assign rd_data_r2 = buffer_row2[27]; // Read data from LineBuffer row 2
+    assign rd_data_r3 = buffer_row3[27]; // Read data from LineBuffer row 3
     
-   initial begin
-        for (i = 0; i < COLS; i = i + 1) begin
-            buffer_row1[i] = ((i % 5) + 1);          // Values: 1,2,3,4,5,1,2,3,4,5,...
-            buffer_row2[i] = (((i+1) % 5) + 1);      // Values: 2,3,4,5,1,2,3,4,5,1,...
-            buffer_row3[i] = (((i+2) % 5) + 1);      // Values: 3,4,5,1,2,3,4,5,1,2,...
-        end
+initial begin
+    // Fill all rows with sequential values from 0 to 27
+    for (i = 0; i < COLS; i = i + 1) begin
+        buffer_row1[i] = i;        // Row 1: 0,1,2,3,...,27
+        buffer_row2[i] = i;        // Row 2: 0,1,2,3,...,27
+        buffer_row3[i] = i;        // Row 3: 0,1,2,3,...,27
     end
+end
 endmodule
