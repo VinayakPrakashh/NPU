@@ -51,7 +51,7 @@ always @(*) begin
 
         end
         CONVOLVE: begin
-            next_state = DONE; // Transition to DONE after convolution
+            
         end
         DONE: begin
             done = 1; // Indicate that the operation is done
