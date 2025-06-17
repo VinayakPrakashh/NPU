@@ -12,17 +12,14 @@ input clk,
     output reg [3:0] kernel_addr,
     output reg shift_buffer,
     output reg done
-    output [7:0] sum1,
-    output [7:0] sum2
 
 );
 
 reg [2:0] state, next_state;
-parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,
-          DONE = 3'b100;
+parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,DONE = 3'b100;
 
 reg window_en;
-
+reg [7:0] sum1,sum2;
 reg [3:0] counter;
 //window2 o/p
 wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
@@ -32,6 +29,9 @@ wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
 wire [7:0] w1_r2_col1, w1_r2_col2, w1_r2_col3,
            w1_r3_col1, w1_r3_col2, w1_r3_col3,
            w1_r1_col1, w1_r1_col2, w1_r1_col3;
+
+wire [7:0] w1_mux_res,
+           w2_mux_res;
 
 wire [7:0] window1_out1, window1_out2, window1_out3;
 wire [7:0] link_wire1, link_wire2, link_wire3;
@@ -82,6 +82,9 @@ always @(posedge clk) begin
         done <= 0; // Reset done signal
         window_en <= 0; // Disable window
         counter <= 0; // Reset counter
+        kernel_addr <= 0; // Reset kernel address
+        sum1 <= 0; // Reset sum1
+        sum2 <= 0; // Reset sum2
     end
     INITIAL_LOAD: begin
         counter <= counter + 1; // Increment counter for loading data
@@ -95,13 +98,15 @@ always @(posedge clk) begin
     end
     CONVOLVE: begin
         counter <= counter + 1; // Increment counter for convolution cycles
-        kernel_shift <= 1; // Enable kernel shift for convolution
-
-        if (counter == 3) begin
+        kernel_addr <= kernel_addr + 1; // Increment kernel address
+        sum1 <= sum1 + w1_mux_res * kernel_in; // Accumulate sum from window2
+        sum2 <= sum2 + w2_mux_res * kernel_in; // Accumulate sum from window1
+        if (counter == 9) begin
             counter <= 0; // Reset counter after convolution cycles
-            kernen_en <= 0; // Disable kernel shift after convolution
+            kernel_addr <= 0;
         end
-    end
+        end
+
     DONE: begin
         done <= 1; // Set done signal to indicate completion
     end
@@ -154,7 +159,7 @@ window2 #( //window2
     .r3_col2(w2_r3_col2),
     .r3_col3(w2_r3_col3)
 );
-window1 #( //window1
+window1_pipo #( //window1
     .BIT_DEPTH(8)
 ) w1 (
     .clk(clk),
@@ -174,6 +179,34 @@ window1 #( //window1
 );
 
 
-
-
+mux_9_1 #(
+    .BIT_DEPTH(8)
+) mux_sum2 (
+    .in1(w2_r1_col1),
+    .in2(w2_r1_col2),
+    .in3(w2_r1_col3),
+    .in4(w2_r2_col1),
+    .in5(w2_r2_col2),
+    .in6(w2_r2_col3),
+    .in7(w2_r3_col1),
+    .in8(w2_r3_col2),
+    .in9(w2_r3_col3),
+    .sel(kernel_addr), // Assuming kernel_addr is used to select the column
+    .out(w2_mux_res)
+);
+mux_9_1 #(
+    .BIT_DEPTH(8)
+) mux_sum1 (
+    .in1(w1_r1_col1),
+    .in2(w1_r1_col2),
+    .in3(w1_r1_col3),
+    .in4(w1_r2_col1),
+    .in5(w1_r2_col2),
+    .in6(w1_r2_col3),
+    .in7(w1_r3_col1),
+    .in8(w1_r3_col2),
+    .in9(w1_r3_col3),
+    .sel(kernel_addr), // Assuming kernel_addr is used to select the column
+    .out(w1_mux_res)
+);
 endmodule
