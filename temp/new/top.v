@@ -34,13 +34,23 @@ convolve #(
     .rst(rst),
     .start(start),
     .stride(stride),
-    .in_l1(in_l1), // Placeholder for input layer 1
-    .in_l2(in_l2), // Placeholder for input layer 2
-    .in_l3(in_l3), // Placeholder for input layer 3
-    .shift_buffer(shift_buffer),
-    .done(done)
+    .in_l1(in_l1),
+    .in_l2(in_l2),
+    .in_l3(in_l3),
+    .kernel_in(kernel_data), // Placeholder for kernel input
+    .kernel_addr(kernel_addr), // Kernel address output
+    .shift_buffer(shift_buffer), // Shift enable signal for LineBuffer
+    .done(done) // Done signal
 );
-
-
+kernel_reg #(
+    .BIT_DEPTH(BIT_DEPTH),
+    .KERNEL_SIZE(3)
+) kernel_reg_inst (
+    .clk(clk),
+    .kernel_in(8'h00), // Placeholder for kernel input
+    .wr_en(0), // Write enable signal
+    .kernel_out(kernel_data), // Kernel output
+    .kernel_addr(kernel_addr) // Kernel address input
+);
 
 endmodule
