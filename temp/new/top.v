@@ -6,12 +6,18 @@ module top #(
     input rst,
     input start,
     input [1:0] stride,
-    output reg shift_buffer,
-    output done
+    output  shift_buffer,
+    output done,
+    output [BIT_DEPTH-1:0] sum1,
+    output [BIT_DEPTH-1:0] sum2
 );
 
 wire [BIT_DEPTH-1:0] in_l1, in_l2, in_l3; // Inputs from LineBuffer
-wire shift_buffer; // Shift enable signal for LineBuffer
+wire [3:0] kernel_addr; // Kernel address output
+wire [BIT_DEPTH-1:0] kernel_data; // Kernel data output
+
+
+
 LineBuffer #(
     .BIT_DEPTH(BIT_DEPTH),
     .ROWS(3),
@@ -40,7 +46,9 @@ convolve #(
     .kernel_in(kernel_data), // Placeholder for kernel input
     .kernel_addr(kernel_addr), // Kernel address output
     .shift_buffer(shift_buffer), // Shift enable signal for LineBuffer
-    .done(done) // Done signal
+    .done(done) ,// Done signal
+    .sum1(sum1), // Output sum1
+    .sum2(sum2) // Output sum2
 );
 kernel_reg #(
     .BIT_DEPTH(BIT_DEPTH),

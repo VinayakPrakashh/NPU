@@ -11,7 +11,9 @@ input clk,
     input [7:0] kernel_in,
     output reg [3:0] kernel_addr,
     output reg shift_buffer,
-    output reg done
+    output reg done,
+    output reg [7:0] sum1,
+    output reg [7:0] sum2
 
 );
 
@@ -19,7 +21,6 @@ reg [2:0] state, next_state;
 parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,DONE = 3'b100;
 
 reg window_en;
-reg [7:0] sum1,sum2;
 reg [3:0] counter;
 //window2 o/p
 wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
@@ -62,7 +63,7 @@ always @(*) begin
 
         end
         CONVOLVE: begin
-            if(counter == 3) begin // Assuming we want to convolve for 3 cycles
+            if(counter == 9) begin // Assuming we want to convolve for 3 cycles
                 next_state = DONE; // Move to DONE state after convolution
             end else begin
                 next_state = CONVOLVE; // Stay in CONVOLVE state until done
@@ -116,27 +117,27 @@ end
 mux_3_1 #( // mux to select the first column for stride 1
     .BIT_DEPTH(8)
 ) mux1 (
-    .in1(w1_r1_col1),
-    .in2(w1_r1_col2),
-    .in3(w1_r1_col3),
+    .in1(w2_r1_col1),
+    .in2(w2_r1_col2),
+    .in3(w2_r1_col3),
     .sel(stride),
     .out(link_wire1)
 );
 mux_3_1 #( //mus to select the second column for stride 2
     .BIT_DEPTH(8)
 ) mux2 (
-    .in1(w1_r2_col1),
-    .in2(w1_r2_col2),
-    .in3(w1_r2_col3),
+    .in1(w2_r2_col1),
+    .in2(w2_r2_col2),
+    .in3(w2_r2_col3),
     .sel(stride),
     .out(link_wire2)
 );
 mux_3_1 #( // mux to select he third column for stride 3
     .BIT_DEPTH(8)
 ) mux3 (
-    .in1(w1_r3_col1),
-    .in2(w1_r3_col2),
-    .in3(w1_r3_col3),
+    .in1(w2_r3_col1),
+    .in2(w2_r3_col2),
+    .in3(w2_r3_col3),
     .sel(stride),
     .out(link_wire3)
 );
