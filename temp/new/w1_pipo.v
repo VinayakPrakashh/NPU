@@ -6,13 +6,21 @@ module window1 #(
     input [BIT_DEPTH-1:0] in1,
     input [BIT_DEPTH-1:0] in2,
     input [BIT_DEPTH-1:0] in3,
-    output [BIT_DEPTH-1:0] out1,
-    output [BIT_DEPTH-1:0] out2,
-    output [BIT_DEPTH-1:0] out3
+    output [BIT_DEPTH-1:0] w1_r1_col1,
+    output [BIT_DEPTH-1:0] w1_r1_col2,
+    output [BIT_DEPTH-1:0] w1_r1_col3,
+    output [BIT_DEPTH-1:0] w1_r2_col1,
+    output [BIT_DEPTH-1:0] w1_r2_col2,
+    output [BIT_DEPTH-1:0] w1_r2_col3,
+    output [BIT_DEPTH-1:0] w1_r3_col1,
+    output [BIT_DEPTH-1:0] w1_r3_col2,
+    output [BIT_DEPTH-1:0] w1_r3_col3
 );
 reg [7:0] window1_1 [0:2];
 reg [7:0] window1_2 [0:2];
 reg [7:0] window1_3 [0:2];
+
+
 
 always @(posedge clk) begin
     if(wr_en) begin
@@ -29,7 +37,13 @@ always @(posedge clk) begin
         window1_3[2] <= window1_3[1];
     end
 end
-assign out1 = window1_1[2];
-assign out2 = window1_2[2]; 
-assign out3 = window1_3[2];
+assign r1_out1 = window1_1[0];
+assign r1_out2 = window1_2[1]; 
+assign r1_out3 = window1_3[2];
+assign r2_out1 = window1_1[0];
+assign r2_out2 = window1_2[1]; 
+assign r2_out3 = window1_3[2];
+assign r3_out1 = window1_1[0];
+assign r3_out2 = window1_2[1]; 
+assign r3_out3 = window1_3[2];
 endmodule

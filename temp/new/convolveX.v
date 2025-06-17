@@ -55,11 +55,11 @@ always @(*) begin
         LOAD: begin
 
         end
-        CONVOLVE1: begin
+        CONVOLVE: begin
             if(counter == 3) begin // Assuming we want to convolve for 3 cycles
                 next_state = DONE; // Move to DONE state after convolution
             end else begin
-                next_state = CONVOLVE1; // Stay in CONVOLVE state until done
+                next_state = CONVOLVE; // Stay in CONVOLVE state until done
             end
         end
         DONE: begin
@@ -87,13 +87,14 @@ always @(posedge clk) begin
             counter <= 0; // Reset counter for next state
         end
     end
-    CONVOLVE1: begin
-
-
-        sum2_1 = sum2_1 + window1_out1 * kernel_in1; // Perform convolution operation
-        sum2_2 = sum2_2 + window1_out2 * kernel_in2; // Perform convolution operation
-        sum2_3 = sum2_3 + window1_out3 * kernel_in3; // Perform convolution operation
-
+    CONVOLVE: begin
+        counter <= counter + 1; // Increment counter for convolution cycles
+        kernel_shift <= 1; // Enable kernel shift for convolution
+        
+        if (counter == 3) begin
+            counter <= 0; // Reset counter after convolution cycles
+            kernen_en <= 0; // Disable kernel shift after convolution
+        end
     end
     DONE: begin
         done <= 1; // Set done signal to indicate completion
