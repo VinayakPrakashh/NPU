@@ -8,8 +8,12 @@ input clk,
     input [7:0] in_l1,
     input [7:0] in_l2,
     input [7:0] in_l3,
+    input [7:0] kernel_in,
+    output reg [3:0] kernel_addr,
     output reg shift_buffer,
     output reg done
+    output [7:0] sum1,
+    output [7:0] sum2
 
 );
 
@@ -18,11 +22,12 @@ parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011
           DONE = 3'b100;
 
 reg window_en;
-reg [3:0] counter;
-wire [7:0] w1_r1_col1, w1_r1_col2, w1_r1_col3,
-           w1_r2_col1, w1_r2_col2, w1_r2_col3,
-           w1_r3_col1, w1_r3_col2, w1_r3_col3;
 
+reg [3:0] counter;
+wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
+           w2_r2_col1, w2_r2_col2, w2_r2_col3,
+           w2_r3_col1, w2_r3_col2, w2_r3_col3;
+wire [7:0] window1_out1, window1_out2, window1_out3;
 wire [7:0] link_wire1, link_wire2, link_wire3;
 always @(posedge clk or posedge rst) begin
     if (rst) begin
@@ -50,8 +55,12 @@ always @(*) begin
         LOAD: begin
 
         end
-        CONVOLVE: begin
-            
+        CONVOLVE1: begin
+            if(counter == 3) begin // Assuming we want to convolve for 3 cycles
+                next_state = DONE; // Move to DONE state after convolution
+            end else begin
+                next_state = CONVOLVE1; // Stay in CONVOLVE state until done
+            end
         end
         DONE: begin
             done = 1; // Indicate that the operation is done
@@ -75,7 +84,19 @@ always @(posedge clk) begin
         if (counter == (stride + 3)) begin
             shift_buffer <= 0; // Disable shift buffer after loading
             window_en <= 0; // Disable window after initial load
+            counter <= 0; // Reset counter for next state
         end
+    end
+    CONVOLVE1: begin
+
+
+        sum2_1 = sum2_1 + window1_out1 * kernel_in1; // Perform convolution operation
+        sum2_2 = sum2_2 + window1_out2 * kernel_in2; // Perform convolution operation
+        sum2_3 = sum2_3 + window1_out3 * kernel_in3; // Perform convolution operation
+
+    end
+    DONE: begin
+        done <= 1; // Set done signal to indicate completion
     end
     endcase
 end
@@ -116,15 +137,15 @@ window2 #( //window2
     .in_l1(in_l1),
     .in_l2(in_l2),
     .in_l3(in_l3),
-    .r1_col1(w1_r1_col1),
-    .r1_col2(w1_r1_col2),
-    .r1_col3(w1_r1_col3),
-    .r2_col1(w1_r2_col1),
-    .r2_col2(w1_r2_col2),
-    .r2_col3(w1_r2_col3),
-    .r3_col1(w1_r3_col1),
-    .r3_col2(w1_r3_col2),
-    .r3_col3(w1_r3_col3)
+    .r1_col1(w2_r1_col1),
+    .r1_col2(w2_r1_col2),
+    .r1_col3(w2_r1_col3),
+    .r2_col1(w2_r2_col1),
+    .r2_col2(w2_r2_col2),
+    .r2_col3(w2_r2_col3),
+    .r3_col1(w2_r3_col1),
+    .r3_col2(w2_r3_col2),
+    .r3_col3(w2_r3_col3)
 );
 window1 #( //window1
     .BIT_DEPTH(8)
@@ -134,9 +155,9 @@ window1 #( //window1
     .in1(link_wire1),
     .in2(link_wire2),
     .in3(link_wire3),
-    .out1(w2_r1_col1),
-    .out2(w2_r2_col1),
-    .out3(w2_r3_col1)
+    .out1(window1_out1),
+    .out2(window1_out2),
+    .out3(window1_out3)
 );
 
 endmodule
