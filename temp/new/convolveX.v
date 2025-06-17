@@ -24,9 +24,15 @@ parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011
 reg window_en;
 
 reg [3:0] counter;
+//window2 o/p
 wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
            w2_r2_col1, w2_r2_col2, w2_r2_col3,
            w2_r3_col1, w2_r3_col2, w2_r3_col3;
+//window1 o/p
+wire [7:0] w1_r2_col1, w1_r2_col2, w1_r2_col3,
+           w1_r3_col1, w1_r3_col2, w1_r3_col3,
+           w1_r1_col1, w1_r1_col2, w1_r1_col3;
+
 wire [7:0] window1_out1, window1_out2, window1_out3;
 wire [7:0] link_wire1, link_wire2, link_wire3;
 always @(posedge clk or posedge rst) begin
@@ -90,7 +96,7 @@ always @(posedge clk) begin
     CONVOLVE: begin
         counter <= counter + 1; // Increment counter for convolution cycles
         kernel_shift <= 1; // Enable kernel shift for convolution
-        
+
         if (counter == 3) begin
             counter <= 0; // Reset counter after convolution cycles
             kernen_en <= 0; // Disable kernel shift after convolution
@@ -156,9 +162,18 @@ window1 #( //window1
     .in1(link_wire1),
     .in2(link_wire2),
     .in3(link_wire3),
-    .out1(window1_out1),
-    .out2(window1_out2),
-    .out3(window1_out3)
+    .w1_r1_col1(w1_r1_col1),
+    .w1_r1_col2(w1_r1_col2),
+    .w1_r1_col3(w1_r1_col3),
+    .w1_r2_col1(w1_r2_col1),
+    .w1_r2_col2(w1_r2_col2),
+    .w1_r2_col3(w1_r2_col3),
+    .w1_r3_col1(w1_r3_col1),
+    .w1_r3_col2(w1_r3_col2),
+    .w1_r3_col3(w1_r3_col3)
 );
+
+
+
 
 endmodule
