@@ -17,7 +17,10 @@ input clk,
     output reg [7:0] sum2,
     output reg dest_wr_en, // Write enable for destination
     output reg [4:0] out_dest_addr, // Address for writing to destination
-    output reg [7:0] sum_out // Output sum
+    output reg [7:0] sum_out, // Output sum
+    output reg pool_shift,
+    output reg comp1_en,
+    output reg comp2_en
 );
 
 reg [2:0] state, next_state;
@@ -26,6 +29,7 @@ parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011
 reg window_en;
 reg [3:0] counter;
 reg [4:0] main_counter;
+reg colum_stride_switch;
 //window2 o/p
 wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
            w2_r2_col1, w2_r2_col2, w2_r2_col3,
@@ -135,7 +139,30 @@ always @(posedge clk) begin
             kernel_addr <= 0;
         end
         end
-        
+    WRITE_BACK_POOL: begin
+        if(!colum_stride_switch) begin
+            comp1_en <= 1; // Enable comparison for first column
+            comp2_en <= 0; // Disable comparison for second column
+        end
+        else if(colum_stride_switch) begin
+            comp1_en <= 1; // Disable comparison for first column
+            comp2_en <= 1; // Enable comparison for second column
+        end
+        counter <= counter + 1; // Increment counter for write back
+        if(counter = 1) begin
+            counter <= 0; // Reset counter after writing
+            comp1_en <= 0; // Disable comparison for first column
+            comp2_en <= 0; // Disable comparison for second column
+            sum1 <= 0; // Reset sum1
+            sum2 <= 0; // Reset sum2
+        end
+        if(main_counter == (13 * stride)) begin
+            main_counter <= 0; // Reset main counter after writing
+            colum_stride_switch <= ~colum_stride_switch; // Toggle column stride switch
+            done <= 1; // Set done signal to indicate completion
+        end 
+        main_counter <= main_counter + 2; // Increment main counter for next operation
+    end
     WRITE_BACK: begin
         counter <= counter + 1; // Increment counter for write back
         dest_wr_en <= 1; // Enable write back to destination
@@ -160,8 +187,6 @@ always @(posedge clk) begin
         end else begin
             main_counter <= main_counter + 2; // Increment main counter for next operation
         end
-
-
     end
     DONE: begin
         done <= 1; // Set done signal to indicate completion
