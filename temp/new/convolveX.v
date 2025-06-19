@@ -110,6 +110,7 @@ always @(posedge clk) begin
 
     DONE: begin
         done <= 1; // Set done signal to indicate completion
+        
     end
     endcase
 end
