@@ -138,17 +138,14 @@ always @(posedge clk) begin
     WRITE_BACK: begin
         counter <= counter + 1; // Increment counter for write back
         dest_wr_en <= 1; // Enable write back to destination
-        out_dest_addr <= out_dest_addr+1; // Set destination address for writing
-        case(counter)
-        0: begin
+        if (counter == 0) begin
             out_dest_addr <= in_dest_addr; // Set output destination address
             sum_out <= sum1; // Output sum1
         end
-        1: begin
+        else if (counter == 1) begin
             out_dest_addr <= in_dest_addr + 1; // Increment output destination address
             sum_out <= sum2; // Output sum2
         end
-        endcase
         if(counter == 2) begin
             dest_wr_en <= 0; // Disable write back after writing
             out_dest_addr <= in_dest_addr + 1; // Increment destination address
