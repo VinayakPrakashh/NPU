@@ -135,6 +135,7 @@ always @(posedge clk) begin
             kernel_addr <= 0;
         end
         end
+        
     WRITE_BACK: begin
         counter <= counter + 1; // Increment counter for write back
         dest_wr_en <= 1; // Enable write back to destination

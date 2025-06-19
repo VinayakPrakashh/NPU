@@ -9,7 +9,10 @@ module top #(
     output  shift_buffer,
     output done,
     output [BIT_DEPTH-1:0] sum1,
-    output [BIT_DEPTH-1:0] sum2
+    output [BIT_DEPTH-1:0] sum2,
+    output [BIT_DEPTH-1:0] sum_out,
+    output [4:0] out_dest_addr,
+    output dest_wr_en // Write enable for destination
 );
 
 wire [BIT_DEPTH-1:0] in_l1, in_l2, in_l3; // Inputs from LineBuffer
@@ -40,15 +43,19 @@ convolve #(
     .rst(rst),
     .start(start),
     .stride(stride),
-    .in_l1(in_l1),
-    .in_l2(in_l2),
-    .in_l3(in_l3),
-    .kernel_in(kernel_data), // Placeholder for kernel input
+    .in_l1(in_l1), // Input from LineBuffer row 1
+    .in_l2(in_l2), // Input from LineBuffer row 2
+    .in_l3(in_l3), // Input from LineBuffer row 3
+    .kernel_in(kernel_data), // Kernel input
+    .in_dest_addr(5'b00000), // Placeholder for input destination address
     .kernel_addr(kernel_addr), // Kernel address output
-    .shift_buffer(shift_buffer), // Shift enable signal for LineBuffer
-    .done(done) ,// Done signal
+    .shift_buffer(shift_buffer), // Shift buffer signal
+    .done(done), // Done signal
     .sum1(sum1), // Output sum1
-    .sum2(sum2) // Output sum2
+    .sum2(sum2), // Output sum2
+    .dest_wr_en(dest_wr_en), // Write enable for destination (not used in this example)
+    .out_dest_addr(out_dest_addr), // Address for writing to destination (not used in this example)
+    .sum_out(sum_out) // Output sum (not used in this example)
 );
 kernel_reg #(
     .BIT_DEPTH(BIT_DEPTH),
