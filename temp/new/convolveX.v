@@ -4,21 +4,24 @@ module convolve #(
 input clk,
     input rst,
     input start,
-    input [1:0] stride,
+    input [1:0] stride, //only stride 1 and 2 are supported
     input [7:0] in_l1,
     input [7:0] in_l2,
     input [7:0] in_l3,
     input [7:0] kernel_in,
+    input [4:0] in_dest_addr,
     output reg [3:0] kernel_addr,
     output reg shift_buffer,
     output reg done,
     output reg [7:0] sum1,
-    output reg [7:0] sum2
-
+    output reg [7:0] sum2,
+    output reg dest_wr_en, // Write enable for destination
+    output reg [4:0] out_dest_addr, // Address for writing to destination
+    output reg [7:0] sum_out // Output sum
 );
 
 reg [2:0] state, next_state;
-parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,DONE = 3'b100;
+parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,WRITE_BACK = 3'b111,DONE = 3'b100;
 
 reg window_en;
 reg [3:0] counter;
@@ -64,9 +67,16 @@ always @(*) begin
         end
         CONVOLVE: begin
             if(counter == 9) begin // Assuming we want to convolve for 3 cycles
-                next_state = DONE; // Move to DONE state after convolution
+                next_state = WRITE_BACK; // Move to DONE state after convolution
             end else begin
                 next_state = CONVOLVE; // Stay in CONVOLVE state until done
+            end
+        end
+        WRITE_BACK: begin
+            if (counter == 2) begin // Assuming we write back after 2 cycles
+                next_state = LOAD; // Move to DONE state after write back
+            end else begin
+                next_state = WRITE_BACK; // Stay in WRITE_BACK state until done
             end
         end
         DONE: begin
@@ -86,6 +96,8 @@ always @(posedge clk) begin
         kernel_addr <= 0; // Reset kernel address
         sum1 <= 0; // Reset sum1
         sum2 <= 0; // Reset sum2
+        out_dest_addr <= in_dest_addr; // Set output destination address
+        dest_wr_en <= 0; // Disable write back to destination
     end
     INITIAL_LOAD: begin
         counter <= counter + 1; // Increment counter for loading data
@@ -94,6 +106,14 @@ always @(posedge clk) begin
         if (counter == (stride + 3)) begin
             shift_buffer <= 0; // Disable shift buffer after loading
             window_en <= 0; // Disable window after initial load
+            counter <= 0; // Reset counter for next state
+        end
+    end
+    LOAD: begin
+        window_en <= 1; // Keep window enabled for loading data
+        counter <= counter + 1; // Increment counter for loading cycles
+        if (counter == (stride)) begin
+            window_en <= 0; // Disable window after loading
             counter <= 0; // Reset counter for next state
         end
     end
@@ -107,10 +127,30 @@ always @(posedge clk) begin
             kernel_addr <= 0;
         end
         end
+    WRITE_BACK: begin
+        counter <= counter + 1; // Increment counter for write back
+        dest_wr_en <= 1; // Enable write back to destination
+        out_dest_addr <= out_dest_addr+1; // Set destination address for writing
+        case(counter)
+        0: begin
+            out_dest_addr <= in_dest_addr; // Set output destination address
+            sum_out <= sum1; // Output sum1
+        end
+        1: begin
+            out_dest_addr <= in_dest_addr + 1; // Increment output destination address
+            sum_out <= sum2; // Output sum2
+        end
+        endcase
+        if(counter == 2) begin
+            dest_wr_en <= 0; // Disable write back after writing
+            out_dest_addr <= in_dest_addr + 1; // Increment destination address
+        end
 
+
+    end
     DONE: begin
         done <= 1; // Set done signal to indicate completion
-        
+
     end
     endcase
 end
@@ -211,4 +251,5 @@ mux_9_1 #(
     .sel(kernel_addr), // Assuming kernel_addr is used to select the column
     .out(w1_mux_res)
 );
+
 endmodule
