@@ -25,6 +25,7 @@ parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011
 
 reg window_en;
 reg [3:0] counter;
+reg [4:0] main_counter;
 //window2 o/p
 wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
            w2_r2_col1, w2_r2_col2, w2_r2_col3,
@@ -75,12 +76,16 @@ always @(*) begin
         WRITE_BACK: begin
             if (counter == 2) begin // Assuming we write back after 2 cycles
                 next_state = LOAD; // Move to DONE state after write back
-            end else begin
+            end 
+            else begin
                 next_state = WRITE_BACK; // Stay in WRITE_BACK state until done
             end
+            if(main_counter == (13 * stride)) begin
+                next_state = DONE; // Stay in WRITE_BACK state until done
+            end
+
         end
         DONE: begin
-            done = 1; // Indicate that the operation is done
             next_state = IDLE; // Return to IDLE state after completion
         end
         default: next_state = IDLE;
@@ -98,6 +103,7 @@ always @(posedge clk) begin
         sum2 <= 0; // Reset sum2
         out_dest_addr <= in_dest_addr; // Set output destination address
         dest_wr_en <= 0; // Disable write back to destination
+        main_counter <= 0; // Reset main counter
     end
     INITIAL_LOAD: begin
         counter <= counter + 1; // Increment counter for loading data
@@ -111,10 +117,12 @@ always @(posedge clk) begin
     end
     LOAD: begin
         window_en <= 1; // Keep window enabled for loading data
+        shift_buffer <= 1; // Enable shift buffer to load data
         counter <= counter + 1; // Increment counter for loading cycles
-        if (counter == (stride)) begin
+        if (counter == stride) begin
             window_en <= 0; // Disable window after loading
             counter <= 0; // Reset counter for next state
+            shift_buffer <= 0; // Disable shift buffer after loading
         end
     end
     CONVOLVE: begin
@@ -144,13 +152,30 @@ always @(posedge clk) begin
         if(counter == 2) begin
             dest_wr_en <= 0; // Disable write back after writing
             out_dest_addr <= in_dest_addr + 1; // Increment destination address
+            sum1 <= 0; // Reset sum1
+            sum2 <= 0; // Reset sum2
+            counter <= 0; // Reset counter for next operation
+        end
+        if(main_counter == (13 * stride)) begin
+            main_counter <= 0; // Reset main counter after writing
+            done <= 1; // Set done signal to indicate completion
+        end else begin
+            main_counter <= main_counter + 2; // Increment main counter for next operation
         end
 
 
     end
     DONE: begin
         done <= 1; // Set done signal to indicate completion
-
+        shift_buffer <= 0; // Disable shift buffer
+        window_en <= 0; // Disable window
+        counter <= 0; // Reset counter
+        kernel_addr <= 0; // Reset kernel address
+        sum1 <= 0; // Reset sum1
+        sum2 <= 0; // Reset sum2
+        out_dest_addr <= in_dest_addr; // Reset output destination address
+        dest_wr_en <= 0; // Disable write back to destination
+        main_counter <= 0; // Reset main counter
     end
     endcase
 end
