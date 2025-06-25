@@ -6,6 +6,7 @@ module top #(
     input rst,
     input start,
     input pool_type,
+    input pool_en,
     input [1:0] stride,
     output  shift_buffer,
     output done,
@@ -22,8 +23,8 @@ wire [3:0] kernel_addr; // Kernel address output
 wire [BIT_DEPTH-1:0] kernel_data; // Kernel data output
 main main1(.clk(clk),
       .rst(rst),
-       .sum1(sum1),
-       .sum2(sum2),
+       .data1(sum1),
+       .data2(sum2),
        .pool_type(pool_type),
        .en_comp1(comp1_en),
        .en_comp2(comp2_en),
@@ -51,6 +52,7 @@ convolve #(
     .clk(clk),
     .rst(rst),
     .start(start),
+    .pool_en(pool_en), // Enable signal for pooling operation
     .stride(stride),
     .in_l1(in_l1), // Input from LineBuffer row 1
     .in_l2(in_l2), // Input from LineBuffer row 2
@@ -65,8 +67,8 @@ convolve #(
     .dest_wr_en(dest_wr_en), // Write enable for destination
     .out_dest_addr(out_dest_addr), // Address for writing to destination
     .sum_out(sum_out), // Output sum
-    .en_comp1(comp1_en), // Placeholder for comparator 1 enable signal
-    .en_comp2(comp2_en)  // Placeholder for comparator 2 enable signal
+    .comp1_en(comp1_en), // Placeholder for comparator 1 enable signal
+    .comp2_en(comp2_en)  // Placeholder for comparator 2 enable signal
 );
 kernel_reg #(
     .BIT_DEPTH(BIT_DEPTH),

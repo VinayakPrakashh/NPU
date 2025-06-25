@@ -4,6 +4,7 @@ module convolve #(
 input clk,
     input rst,
     input start,
+    input pool_en,
     input [1:0] stride, //only stride 1 and 2 are supported
     input [7:0] in_l1,
     input [7:0] in_l2,
@@ -67,16 +68,19 @@ always @(*) begin
             end
         end
         LOAD: begin
-            if (counter == stride) begin // Adjusted for stride
+            if (counter == stride + 1) begin // Adjusted for stride
                 next_state = CONVOLVE; // Move to CONVOLVE state after loading
             end else begin
                 next_state = LOAD; // Stay in LOAD state until done
             end
         end
         CONVOLVE: begin
-            if(counter == 8) begin // Assuming we want to convolve for 3 cycles
+            if(counter == 8 && !pool_en) begin // Assuming we want to convolve for 3 cycles
                 next_state = WRITE_BACK; // Move to DONE state after convolution
-            end else begin
+            end else if(counter == 8 && pool_en) begin
+                next_state = WRITE_BACK_POOL; // Move to WRITE_BACK_POOL state if pooling is enabled
+            end 
+            else begin
                 next_state = CONVOLVE; // Stay in CONVOLVE state until done
             end
         end
@@ -90,7 +94,15 @@ always @(*) begin
             if(main_counter == (26/stride)) begin
                 next_state = DONE; // Stay in WRITE_BACK state until done
             end
-
+        end
+        WRITE_BACK_POOL: begin
+            if (counter == 1) begin // Assuming we write back after 1 cycle
+                next_state = LOAD; // Move to WRITE_BACK state after write back
+            end else if (main_counter == ((26 / stride) - 2) )begin
+                next_state = DONE; // Move to DONE state after pooling
+            end else begin
+                next_state = WRITE_BACK_POOL; // Stay in WRITE_BACK_POOL state until done
+            end
         end
         DONE: begin
             next_state = IDLE; // Return to IDLE state after completion
@@ -111,6 +123,9 @@ always @(posedge clk) begin
         out_dest_addr <= in_dest_addr; // Set output destination address
         dest_wr_en <= 0; // Disable write back to destination
         main_counter <= 0; // Reset main counter
+        colum_stride_switch <= 0; // Reset column stride switch
+        comp1_en <= 0; // Disable comparison for first column
+        comp2_en <= 0; // Disable comparison for second column
     end
     INITIAL_LOAD: begin
         counter <= counter + 1; // Increment counter for loading data
@@ -126,7 +141,7 @@ always @(posedge clk) begin
         window_en <= 1; // Keep window enabled for loading data
         shift_buffer <= 1; // Enable shift buffer to load data
         counter <= counter + 1; // Increment counter for loading cycles
-        if (counter == stride) begin
+        if (counter == stride + 1) begin
             window_en <= 0; // Disable window after loading
             counter <= 0; // Reset counter for next state
             shift_buffer <= 0; // Disable shift buffer after loading
@@ -158,13 +173,14 @@ always @(posedge clk) begin
             comp2_en <= 0; // Disable comparison for second column
             sum1 <= 0; // Reset sum1
             sum2 <= 0; // Reset sum2
+            main_counter <= main_counter + 2; // Increment main counter for next operation
         end
-        if(main_counter == (13 * stride)) begin
+        if(main_counter == ((26 /  stride) - 2)) begin
             main_counter <= 0; // Reset main counter after writing
             colum_stride_switch <= ~colum_stride_switch; // Toggle column stride switch
             done <= 1; // Set done signal to indicate completion
         end 
-        main_counter <= main_counter + 2; // Increment main counter for next operation
+       
     end
     WRITE_BACK: begin
         counter <= counter + 1; // Increment counter for write back
@@ -202,6 +218,8 @@ always @(posedge clk) begin
         sum2 <= 0; // Reset sum2
         dest_wr_en <= 0; // Disable write back to destination
         main_counter <= 0; // Reset main counter
+        comp1_en <= 0; // Disable comparison for first column
+        comp2_en <= 0; // Disable comparison for second column
     end
     endcase
 end

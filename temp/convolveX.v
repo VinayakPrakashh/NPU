@@ -84,6 +84,7 @@ always @(posedge i_clk) begin
         sum1 <= 0; // Reset sum1
         sum2 <= 0; // Reset sum2
         i <= 0; // Reset index for convolution
+        
     end
     LOAD_KERNEL: begin
         kernal_addr <= kernal_addr + 1; // Increment kernel address

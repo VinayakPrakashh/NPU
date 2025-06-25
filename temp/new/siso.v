@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 module siso #(
   parameter WIDTH = 8,
-  parameter DEPTH = 26
+  parameter DEPTH = 13
 )(
   input wire clk,
   input wire shift_en,
@@ -19,5 +19,5 @@ module siso #(
     buffer[0] <= din;
     end
   end
-assign dout=buffer[25];
+assign dout=buffer[12];
 endmodule
