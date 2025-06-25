@@ -24,7 +24,7 @@ input clk,
 );
 
 reg [2:0] state, next_state;
-parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,WRITE_BACK = 3'b111,WRITE_BACK_POOL = 3'b100,DONE = 3'b101;
+parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,WRITE_BACK = 3'b100,WRITE_BACK_POOL = 3'b101,DONE = 3'b110;
 
 reg window_en;
 reg [3:0] counter;
@@ -167,25 +167,24 @@ always @(posedge clk) begin
         counter <= counter + 1; // Increment counter for write back
         dest_wr_en <= 1; // Enable write back to destination
         if (counter == 0) begin
-            out_dest_addr <= in_dest_addr; // Set output destination address
+            out_dest_addr <= out_dest_addr; // Set output destination address
             sum_out <= sum1; // Output sum1
         end
         else if (counter == 1) begin
-            out_dest_addr <= in_dest_addr + 1; // Increment output destination address
+            out_dest_addr <= out_dest_addr + 1; // Increment output destination address
             sum_out <= sum2; // Output sum2
         end
         if(counter == 2) begin
             dest_wr_en <= 0; // Disable write back after writing
-            out_dest_addr <= in_dest_addr + 1; // Increment destination address
+            out_dest_addr <= out_dest_addr + 1; // Increment destination address
             sum1 <= 0; // Reset sum1
             sum2 <= 0; // Reset sum2
             counter <= 0; // Reset counter for next operation
+            main_counter <= main_counter + 2; // Increment main counter for next operation
         end
-        if(main_counter == (13 * stride)) begin
+        if(main_counter == (26 / stride)) begin
             main_counter <= 0; // Reset main counter after writing
             done <= 1; // Set done signal to indicate completion
-        end else begin
-            main_counter <= main_counter + 2; // Increment main counter for next operation
         end
     end
     DONE: begin
@@ -196,7 +195,6 @@ always @(posedge clk) begin
         kernel_addr <= 0; // Reset kernel address
         sum1 <= 0; // Reset sum1
         sum2 <= 0; // Reset sum2
-        out_dest_addr <= in_dest_addr; // Reset output destination address
         dest_wr_en <= 0; // Disable write back to destination
         main_counter <= 0; // Reset main counter
     end
