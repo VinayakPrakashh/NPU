@@ -24,7 +24,7 @@ input clk,
 );
 
 reg [2:0] state, next_state;
-parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,WRITE_BACK = 3'b111,DONE = 3'b100;
+parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,WRITE_BACK = 3'b111,WRITE_BACK_POOL = 3'b100,DONE = 3'b101;
 
 reg window_en;
 reg [3:0] counter;
@@ -145,11 +145,11 @@ always @(posedge clk) begin
             comp2_en <= 0; // Disable comparison for second column
         end
         else if(colum_stride_switch) begin
-            comp1_en <= 1; // Disable comparison for first column
-            comp2_en <= 1; // Enable comparison for second column
+            comp1_en <= 1; // enable comparison for first comp
+            comp2_en <= 1; // Enable comparison for second comp
         end
         counter <= counter + 1; // Increment counter for write back
-        if(counter = 1) begin
+        if(counter == 1) begin
             counter <= 0; // Reset counter after writing
             comp1_en <= 0; // Disable comparison for first column
             comp2_en <= 0; // Disable comparison for second column
