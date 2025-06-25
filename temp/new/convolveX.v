@@ -68,7 +68,11 @@ always @(*) begin
             end
         end
         LOAD: begin
-
+            if (counter == stride) begin // Adjusted for stride
+                next_state = CONVOLVE; // Move to CONVOLVE state after loading
+            end else begin
+                next_state = LOAD; // Stay in LOAD state until done
+            end
         end
         CONVOLVE: begin
             if(counter == 9) begin // Assuming we want to convolve for 3 cycles
