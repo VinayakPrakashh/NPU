@@ -18,7 +18,6 @@ input clk,
     output reg dest_wr_en, // Write enable for destination
     output reg [4:0] out_dest_addr, // Address for writing to destination
     output reg [7:0] sum_out, // Output sum
-    output reg pool_shift,
     output reg comp1_en,
     output reg comp2_en
 );
@@ -75,20 +74,20 @@ always @(*) begin
             end
         end
         CONVOLVE: begin
-            if(counter == 9) begin // Assuming we want to convolve for 3 cycles
+            if(counter == 8) begin // Assuming we want to convolve for 3 cycles
                 next_state = WRITE_BACK; // Move to DONE state after convolution
             end else begin
                 next_state = CONVOLVE; // Stay in CONVOLVE state until done
             end
         end
         WRITE_BACK: begin
-            if (counter == 2) begin // Assuming we write back after 2 cycles
+            if (counter == 3) begin // Assuming we write back after 2 cycles
                 next_state = LOAD; // Move to DONE state after write back
             end 
             else begin
                 next_state = WRITE_BACK; // Stay in WRITE_BACK state until done
             end
-            if(main_counter == (13 * stride)) begin
+            if(main_counter == (26/stride)) begin
                 next_state = DONE; // Stay in WRITE_BACK state until done
             end
 
@@ -138,7 +137,7 @@ always @(posedge clk) begin
         kernel_addr <= kernel_addr + 1; // Increment kernel address
         sum1 <= sum1 + w1_mux_res * kernel_in; // Accumulate sum from window2
         sum2 <= sum2 + w2_mux_res * kernel_in; // Accumulate sum from window1
-        if (counter == 9) begin
+        if (counter == 8) begin
             counter <= 0; // Reset counter after convolution cycles
             kernel_addr <= 0;
         end
@@ -169,22 +168,24 @@ always @(posedge clk) begin
     end
     WRITE_BACK: begin
         counter <= counter + 1; // Increment counter for write back
-        dest_wr_en <= 1; // Enable write back to destination
-        if (counter == 0) begin
+        if (counter == 1) begin
             out_dest_addr <= out_dest_addr; // Set output destination address
             sum_out <= sum1; // Output sum1
+            dest_wr_en<=1'b1;
         end
-        else if (counter == 1) begin
+        else if (counter == 2) begin
             out_dest_addr <= out_dest_addr + 1; // Increment output destination address
             sum_out <= sum2; // Output sum2
+            main_counter <= main_counter + 2; // Increment main counter for next operation
         end
-        if(counter == 2) begin
+        if(counter == 3) begin
             dest_wr_en <= 0; // Disable write back after writing
             out_dest_addr <= out_dest_addr + 1; // Increment destination address
             sum1 <= 0; // Reset sum1
             sum2 <= 0; // Reset sum2
+            sum_out<=0;
             counter <= 0; // Reset counter for next operation
-            main_counter <= main_counter + 2; // Increment main counter for next operation
+            //main_counter <= main_counter + 2; // Increment main counter for next operation
         end
         if(main_counter == (26 / stride)) begin
             main_counter <= 0; // Reset main counter after writing

@@ -5,6 +5,7 @@ module top #(
     input clk,
     input rst,
     input start,
+    input pool_type,
     input [1:0] stride,
     output  shift_buffer,
     output done,
@@ -12,14 +13,22 @@ module top #(
     output [BIT_DEPTH-1:0] sum2,
     output [BIT_DEPTH-1:0] sum_out,
     output [4:0] out_dest_addr,
-    output dest_wr_en // Write enable for destination
+    output dest_wr_en, // Write enable for destination
+    output rd_data
 );
-
+wire comp1_en,comp2_en;
 wire [BIT_DEPTH-1:0] in_l1, in_l2, in_l3; // Inputs from LineBuffer
 wire [3:0] kernel_addr; // Kernel address output
 wire [BIT_DEPTH-1:0] kernel_data; // Kernel data output
-
-
+main main1(.clk(clk),
+      .rst(rst),
+       .sum1(sum1),
+       .sum2(sum2),
+       .pool_type(pool_type),
+       .en_comp1(comp1_en),
+       .en_comp2(comp2_en),
+       .rd_data(rd_data)
+);
 
 LineBuffer #(
     .BIT_DEPTH(BIT_DEPTH),
@@ -46,16 +55,18 @@ convolve #(
     .in_l1(in_l1), // Input from LineBuffer row 1
     .in_l2(in_l2), // Input from LineBuffer row 2
     .in_l3(in_l3), // Input from LineBuffer row 3
-    .kernel_in(kernel_data), // Kernel input
+    .kernel_in(kernel_data), // Kernel data input
     .in_dest_addr(5'b00000), // Placeholder for input destination address
     .kernel_addr(kernel_addr), // Kernel address output
-    .shift_buffer(shift_buffer), // Shift buffer signal
+    .shift_buffer(shift_buffer), // Shift enable signal for LineBuffer
     .done(done), // Done signal
-    .sum1(sum1), // Output sum1
-    .sum2(sum2), // Output sum2
-    .dest_wr_en(dest_wr_en), // Write enable for destination (not used in this example)
-    .out_dest_addr(out_dest_addr), // Address for writing to destination (not used in this example)
-    .sum_out(sum_out) // Output sum (not used in this example)
+    .sum1(sum1), // Output sum 1
+    .sum2(sum2), // Output sum 2
+    .dest_wr_en(dest_wr_en), // Write enable for destination
+    .out_dest_addr(out_dest_addr), // Address for writing to destination
+    .sum_out(sum_out), // Output sum
+    .en_comp1(comp1_en), // Placeholder for comparator 1 enable signal
+    .en_comp2(comp2_en)  // Placeholder for comparator 2 enable signal
 );
 kernel_reg #(
     .BIT_DEPTH(BIT_DEPTH),

@@ -2,13 +2,13 @@
 module main(
   input clk,
   input rst,
+  input done,
   input [7:0] data1,
   input [7:0] data2,
   input pool_type,
-  input shift,
   input en_comp1,
   input en_comp2,
-  output wire [7:0] rd_data; 
+  output  [7:0] rd_data
 );
  wire [7:0] out1,shifted_out,comp_out;
  comparator1 pool_1 (
@@ -43,4 +43,7 @@ siso #(
   .din(comp_out),          
   .dout(rd_data)      
 );
+always @(posedge clk)begin
+
+end
 endmodule
