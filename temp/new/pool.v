@@ -89,6 +89,8 @@ always @(posedge clk ) begin
   case (state)
     IDLE: begin
       counter <= 0; // Reset count in IDLE state
+      out_wr_en <= 0; // Disable write in IDLE state
+      addr <= 0; // Reset address in IDLE state
     end
     POOL_WB: begin
         counter <= counter + 1; // Increment count in POOL_WB state
