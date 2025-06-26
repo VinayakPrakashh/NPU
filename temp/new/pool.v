@@ -8,7 +8,10 @@ module main(
   input pool_type,
   input en_comp1,
   input en_comp2,
-  output  [7:0] rd_data
+  input pool_done,
+  output  [7:0] rd_data,
+  output reg [3:0] addr,
+  output reg [7:0] out_data
 );
  wire [7:0] out1,shifted_out,comp_out;
  comparator1 pool_1 (
@@ -39,11 +42,70 @@ siso #(
   .DEPTH(13)
 ) siso_inst1 (
   .clk(clk),
-  .shift_en(en_comp2),    
+  .shift_en(shift_siso2),    
   .din(comp_out),          
   .dout(rd_data)      
 );
-always @(posedge clk)begin
 
+parameter IDLE = 2'b00,
+          POOL_WB = 2'b01,
+          DONE = 2'b10;
+
+reg [3:0] state, next_state;
+reg [3:0] counter;
+always @(posedge clk)begin
+if (rst) begin
+    state <= IDLE;
+  end else begin
+    state <= next_state;
+  end
 end
+
+always @(*) begin
+  case (state)
+    IDLE: begin
+      if (pool_done) begin
+        next_state = POOL_WB;
+      end else begin
+        next_state = IDLE;
+      end
+    end
+    POOL_WB: begin
+      if (counter == 13) begin
+        next_state = DONE;
+      end else begin
+        next_state = POOL_WB;
+      end
+    end
+    DONE: begin
+      next_state = IDLE; // Reset to IDLE after DONE
+    end
+    default: begin
+      next_state = IDLE; // Default case to avoid latches
+    end
+  endcase
+end
+always @(posedge clk ) begin
+  case (state)
+    IDLE: begin
+      counter <= 0; // Reset count in IDLE state
+    end
+    POOL_WB: begin
+        counter <= counter + 1; // Increment count in POOL_WB state
+        out_wr_en <= 1; // Enable write in POOL_WB state
+        out_data <= rd_data; // Output data to out_data
+        if(counter == 13) begin
+          counter <= 0; // Reset count when it reaches 13
+          out_wr_en <= 0; // Disable write when done
+        end
+    end
+    DONE: begin
+      counter <= 0; // Reset count in DONE state
+      out_wr_en <= 0; // Disable write in DONE state
+    end
+
+    default: counter <= 0; // Default case to avoid latches
+  endcase
+end
+assign shift_siso2 = out_wr_en | en_comp2; // Control signal for second SISO shift
 endmodule
