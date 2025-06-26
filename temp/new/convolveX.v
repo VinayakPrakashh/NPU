@@ -21,6 +21,7 @@ input clk,
     output reg [7:0] sum_out, // Output sum
     output reg comp1_en,
     output reg comp2_en
+
 );
 
 reg [2:0] state, next_state;
@@ -30,6 +31,7 @@ reg window_en;
 reg [3:0] counter;
 reg [4:0] main_counter;
 reg colum_stride_switch;
+reg pool_done;
 //window2 o/p
 wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
            w2_r2_col1, w2_r2_col2, w2_r2_col3,
@@ -47,6 +49,7 @@ wire [7:0] link_wire1, link_wire2, link_wire3;
 always @(posedge clk or posedge rst) begin
     if (rst) begin
         state <= IDLE;
+        colum_stride_switch <= 0; // Reset column stride switch
     end else begin
         state <= next_state;
     end
@@ -123,9 +126,9 @@ always @(posedge clk) begin
         out_dest_addr <= in_dest_addr; // Set output destination address
         dest_wr_en <= 0; // Disable write back to destination
         main_counter <= 0; // Reset main counter
-        colum_stride_switch <= 0; // Reset column stride switch
         comp1_en <= 0; // Disable comparison for first column
         comp2_en <= 0; // Disable comparison for second column
+        pool_done <= 0;
     end
     INITIAL_LOAD: begin
         counter <= counter + 1; // Increment counter for loading data
@@ -206,6 +209,7 @@ always @(posedge clk) begin
         if(main_counter == (26 / stride)) begin
             main_counter <= 0; // Reset main counter after writing
             done <= 1; // Set done signal to indicate completion
+            if(colum_stride_switch) pool_done <= 1;
         end
     end
     DONE: begin
@@ -320,5 +324,6 @@ mux_9_1 #(
     .sel(kernel_addr), // Assuming kernel_addr is used to select the column
     .out(w1_mux_res)
 );
+
 
 endmodule
