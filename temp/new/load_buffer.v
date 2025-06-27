@@ -64,11 +64,9 @@ always @(posedge clk) begin
             dout2 <= 0;
             dout3 <= 0;
             done <= 0;
-            addr1 <= ( row_num << 5 ) - ( row_num << 2 )
-            addr2 <= ( row_num << 5 ) - ( row_num << 2 ) + BUFFER_SIZE;
-            addr3 <= ( row_num << 5 ) - ( row_num << 2 ) + (BUFFER_SIZE * 2);
-
-
+            // addr1 <= ( row_num << 5 ) - ( row_num << 2 )
+            // addr2 <= ( row_num << 5 ) - ( row_num << 2 ) + BUFFER_SIZE;
+            // addr3 <= ( row_num << 5 ) - ( row_num << 2 ) + (BUFFER_SIZE * 2);
         end
 
         LOAD: begin
