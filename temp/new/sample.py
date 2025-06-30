@@ -63,6 +63,7 @@ print("Convolution Kernel:\n", kernel)
 
 # Extract FC layer weights and bias
 fc_weights = state_dict['fc.weight'].numpy().T  # shape (169, 10)
+print(fc_weights)
 fc_biases = state_dict['fc.bias'].numpy()       # shape (10,)
 
 # === Forward pass through each layer ===
