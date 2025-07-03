@@ -16,20 +16,15 @@ input clk,
     output reg [7:0] sum1,
     output reg [7:0] sum2,
     output reg dest_wr_en, // Write enable for destination
-    output reg [4:0] out_dest_addr, // Address for writing to destination
-    output reg comp1_en,
-    output reg comp2_en
-
+    output reg [4:0] out_dest_addr // Address for writing to destination
 );
 
 reg [2:0] state, next_state;
-parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,WRITE_BACK = 3'b100,WRITE_BACK_POOL = 3'b101,DONE = 3'b110;
+parameter IDLE = 3'b000, INITIAL_LOAD = 3'b001, LOAD = 3'b010, CONVOLVE = 3'b011,WRITE_BACK = 3'b100,DONE = 3'b101;
 
 reg window_en;
 reg [3:0] counter;
 reg [4:0] main_counter;
-reg colum_stride_switch;
-reg pool_done;
 //window2 o/p
 wire [7:0] w2_r1_col1, w2_r1_col2, w2_r1_col3,
            w2_r2_col1, w2_r2_col2, w2_r2_col3,
@@ -186,30 +181,16 @@ always @(posedge clk) begin
     WRITE_BACK: begin
         counter <= counter + 1; // Increment counter for write back
         dest_wr_en <= 1; // Enable write back to destination
-        out_dest_addr <= in_dest_addr + 1; // Set output destination address
+        out_dest_addr <= out_dest_addr + 1; // Set output destination address
         if (counter == 1) begin
             sum1 <= 0; // Reset sum1
             sum2 <= 0; // Reset sum2
             dest_wr_en<=1'b0;
-        end
-        else if (counter == 2) begin
-            out_dest_addr <= out_dest_addr + 1; // Increment output destination address
-            sum_out <= sum2; // Output sum2
             main_counter <= main_counter + 2; // Increment main counter for next operation
-        end
-        if(counter == 3) begin
-            dest_wr_en <= 0; // Disable write back after writing
-            out_dest_addr <= out_dest_addr + 1; // Increment destination address
-            sum1 <= 0; // Reset sum1
-            sum2 <= 0; // Reset sum2
-            sum_out<=0;
-            counter <= 0; // Reset counter for next operation
-            //main_counter <= main_counter + 2; // Increment main counter for next operation
         end
         if(main_counter == (26 / stride)) begin
             main_counter <= 0; // Reset main counter after writing
             done <= 1; // Set done signal to indicate completion
-
         end
     end
     DONE: begin

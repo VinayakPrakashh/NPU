@@ -1,6 +1,6 @@
 module res_buffer1 #(
-    parameter BIT_DEPTH = 8;
-    parameter ADDR_WIDTH = 10;
+    parameter BIT_DEPTH = 8,
+    parameter ADDR_WIDTH = 10
 ) (
     input clk,
     input [BIT_DEPTH-1:0] data_in, // Input data to be stored

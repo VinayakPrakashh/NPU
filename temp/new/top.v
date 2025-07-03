@@ -21,15 +21,6 @@ wire comp1_en,comp2_en;
 wire [BIT_DEPTH-1:0] in_l1, in_l2, in_l3; // Inputs from LineBuffer
 wire [3:0] kernel_addr; // Kernel address output
 wire [BIT_DEPTH-1:0] kernel_data; // Kernel data output
-main main1(.clk(clk),
-      .rst(rst),
-       .data1(sum1),
-       .data2(sum2),
-       .pool_type(pool_type),
-       .en_comp1(comp1_en),
-       .en_comp2(comp2_en),
-       .rd_data(rd_data)
-);
 
 LineBuffer #(
     .BIT_DEPTH(BIT_DEPTH),
@@ -65,10 +56,28 @@ convolve #(
     .sum1(sum1), // Output sum 1
     .sum2(sum2), // Output sum 2
     .dest_wr_en(dest_wr_en), // Write enable for destination
-    .out_dest_addr(out_dest_addr), // Address for writing to destination
-    .sum_out(sum_out), // Output sum
-    .comp1_en(comp1_en), // Placeholder for comparator 1 enable signal
-    .comp2_en(comp2_en)  // Placeholder for comparator 2 enable signal
+    .out_dest_addr(out_dest_addr)
+);
+
+res_buffer1 #(
+    .BIT_DEPTH(BIT_DEPTH),
+    .ADDR_WIDTH(10)
+) res_buffer1_inst (
+    .clk(clk),
+    .data_in(sum1), // Input data to be stored
+    .wr_addr(out_dest_addr), // Placeholder for write address
+    .wr_en(dest_wr_en), // Write enable signal
+    .data_out(rd_data) // Output data from the buffer
+);
+res_buffer2 #(
+    .BIT_DEPTH(BIT_DEPTH),
+    .ADDR_WIDTH(10)
+) res_buffer2_inst (
+    .clk(clk),
+    .data_in(sum2), // Input data to be stored
+    .wr_addr(out_dest_addr), // Placeholder for write address
+    .wr_en(dest_wr_en), // Write enable signal
+    .data_out(rd_data) // Output data from the buffer
 );
 kernel_reg #(
     .BIT_DEPTH(BIT_DEPTH),
@@ -81,4 +90,24 @@ kernel_reg #(
     .kernel_addr(kernel_addr) // Kernel address input
 );
 
+endmodule
+module res_buffer2 #(
+    parameter BIT_DEPTH = 8,
+    parameter ADDR_WIDTH = 10
+) (
+    input clk,
+    input [BIT_DEPTH-1:0] data_in, // Input data to be stored
+    input [ADDR_WIDTH-1:0] wr_addr, // Address to write data
+    input wr_en, // Write enable signal
+    output reg [BIT_DEPTH-1:0] data_out // Output data from the buffer
+);
+reg [BIT_DEPTH-1:0] buffer [ADDR_WIDTH-1:0]; // Internal buffer to store data
+
+always @(posedge clk) begin
+    if(wr_en) begin
+        buffer[wr_addr] <= data_in; // Write data to the buffer
+    end
+
+end
+assign data_out = buffer[wr_addr]; // Output data from the buffer
 endmodule
