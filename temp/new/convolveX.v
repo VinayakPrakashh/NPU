@@ -1,5 +1,6 @@
 module convolve #(
-    parameter BIT_DEPTH = 8
+    parameter BIT_DEPTH = 8,
+    parameter DEST_ADDR_WIDTH = 10 // Address width for kernel address
 ) (
 input clk,
     input rst,
@@ -16,7 +17,7 @@ input clk,
     output reg [7:0] sum1,
     output reg [7:0] sum2,
     output reg dest_wr_en, // Write enable for destination
-    output reg [4:0] out_dest_addr // Address for writing to destination
+    output reg [DEST_ADDR_WIDTH-1:0] out_dest_addr // Address for writing to destination
 );
 
 reg [2:0] state, next_state;
@@ -42,7 +43,7 @@ wire [7:0] link_wire1, link_wire2, link_wire3;
 always @(posedge clk or posedge rst) begin
     if (rst) begin
         state <= IDLE;
-        colum_stride_switch <= 0; // Reset column stride switch
+ 
     end else begin
         state <= next_state;
     end
@@ -71,35 +72,24 @@ always @(*) begin
             end
         end
         CONVOLVE: begin
-            if(counter == 8 && !pool_en) begin // Assuming we want to convolve for 3 cycles
-                next_state = WRITE_BACK; // Move to DONE state after convolution
-            end else if(counter == 8 && pool_en) begin
-                next_state = WRITE_BACK_POOL; // Move to WRITE_BACK_POOL state if pooling is enabled
-            end 
+            if(counter == 8 ) begin
+            next_state <= WRITE_BACK;
+            end
             else begin
                 next_state = CONVOLVE; // Stay in CONVOLVE state until done
             end
         end
         WRITE_BACK: begin
-            if (counter == 3) begin // Assuming we write back after 2 cycles
+            if (counter == 1) begin 
                 next_state = LOAD; // Move to DONE state after write back
             end 
             else begin
                 next_state = WRITE_BACK; // Stay in WRITE_BACK state until done
             end
-            if(main_counter == (26/stride)) begin
+            if(main_counter == ((26/stride)-2)) begin
                 next_state = DONE; // Stay in WRITE_BACK state until done
             end
         end
-        // WRITE_BACK_POOL: begin
-        //     if (counter == 1) begin // Assuming we write back after 1 cycle
-        //         next_state = LOAD; // Move to WRITE_BACK state after write back
-        //     end else if (main_counter == ((26 / stride) - 2) )begin
-        //         next_state = DONE; // Move to DONE state after pooling
-        //     end else begin
-        //         next_state = WRITE_BACK_POOL; // Stay in WRITE_BACK_POOL state until done
-        //     end
-        // end
         DONE: begin
             next_state = IDLE; // Return to IDLE state after completion
         end
@@ -119,9 +109,6 @@ always @(posedge clk) begin
         out_dest_addr <= in_dest_addr; // Set output destination address
         dest_wr_en <= 0; // Disable write back to destination
         main_counter <= 0; // Reset main counter
-        comp1_en <= 0; // Disable comparison for first column
-        comp2_en <= 0; // Disable comparison for second column
-        pool_done <= 0;
     end
     INITIAL_LOAD: begin
         counter <= counter + 1; // Increment counter for loading data
@@ -153,43 +140,21 @@ always @(posedge clk) begin
             kernel_addr <= 0;
         end
         end
-    // WRITE_BACK_POOL: begin
-    //     if(!colum_stride_switch) begin
-    //         comp1_en <= 1; // Enable comparison for first column
-    //         comp2_en <= 0; // Disable comparison for second column
-    //     end
-    //     else if(colum_stride_switch) begin
-    //         comp1_en <= 1; // enable comparison for first comp
-    //         comp2_en <= 1; // Enable comparison for second comp
-    //     end
-    //     counter <= counter + 1; // Increment counter for write back
-    //     if(counter == 1) begin
-    //         counter <= 0; // Reset counter after writing
-    //         comp1_en <= 0; // Disable comparison for first column
-    //         comp2_en <= 0; // Disable comparison for second column
-    //         sum1 <= 0; // Reset sum1
-    //         sum2 <= 0; // Reset sum2
-    //         main_counter <= main_counter + 2; // Increment main counter for next operation
-    //     end
-    //     if(main_counter == ((26 /  stride) - 2)) begin
-    //         main_counter <= 0; // Reset main counter after writing
-    //         colum_stride_switch <= ~colum_stride_switch; // Toggle column stride switch
-    //         done <= 1; // Set done signal to indicate completion
-    //     end 
-       
-    // end
+
     WRITE_BACK: begin
         counter <= counter + 1; // Increment counter for write back
         dest_wr_en <= 1; // Enable write back to destination
-        out_dest_addr <= out_dest_addr + 1; // Set output destination address
         if (counter == 1) begin
+            out_dest_addr <= out_dest_addr + 1; // Set output destination address
             sum1 <= 0; // Reset sum1
             sum2 <= 0; // Reset sum2
             dest_wr_en<=1'b0;
             main_counter <= main_counter + 2; // Increment main counter for next operation
+            counter <= 0; // Reset counter for next write back
         end
-        if(main_counter == (26 / stride)) begin
+        if(main_counter == ((26 / stride)-2)) begin
             main_counter <= 0; // Reset main counter after writing
+            counter <= 0; // Reset counter for next operation
             done <= 1; // Set done signal to indicate completion
         end
     end
@@ -203,8 +168,7 @@ always @(posedge clk) begin
         sum2 <= 0; // Reset sum2
         dest_wr_en <= 0; // Disable write back to destination
         main_counter <= 0; // Reset main counter
-        comp1_en <= 0; // Disable comparison for first column
-        comp2_en <= 0; // Disable comparison for second column
+
     end
     endcase
 end

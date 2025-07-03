@@ -1,23 +1,18 @@
 module top #(
-    parameter BIT_DEPTH = 8 // Width of the data stored in LineBuffer
-
+    parameter BIT_DEPTH = 8, // Width of the data stored in LineBuffer
+    parameter DEST_ADDR_WIDTH = 10 // Address width for destination
 ) (
     input clk,
     input rst,
     input start,
-    input pool_type,
-    input pool_en,
     input [1:0] stride,
     output  shift_buffer,
     output done,
     output [BIT_DEPTH-1:0] sum1,
     output [BIT_DEPTH-1:0] sum2,
-    output [BIT_DEPTH-1:0] sum_out,
-    output [4:0] out_dest_addr,
-    output dest_wr_en, // Write enable for destination
-    output rd_data
+    output [DEST_ADDR_WIDTH-1:0] out_dest_addr,
+    output dest_wr_en // Write enable for destination
 );
-wire comp1_en,comp2_en;
 wire [BIT_DEPTH-1:0] in_l1, in_l2, in_l3; // Inputs from LineBuffer
 wire [3:0] kernel_addr; // Kernel address output
 wire [BIT_DEPTH-1:0] kernel_data; // Kernel data output
@@ -43,7 +38,6 @@ convolve #(
     .clk(clk),
     .rst(rst),
     .start(start),
-    .pool_en(pool_en), // Enable signal for pooling operation
     .stride(stride),
     .in_l1(in_l1), // Input from LineBuffer row 1
     .in_l2(in_l2), // Input from LineBuffer row 2
@@ -61,13 +55,13 @@ convolve #(
 
 res_buffer1 #(
     .BIT_DEPTH(BIT_DEPTH),
-    .ADDR_WIDTH(10)
+    .ADDR_WIDTH(DEST_ADDR_WIDTH)
 ) res_buffer1_inst (
     .clk(clk),
     .data_in(sum1), // Input data to be stored
     .wr_addr(out_dest_addr), // Placeholder for write address
     .wr_en(dest_wr_en), // Write enable signal
-    .data_out(rd_data) // Output data from the buffer
+    .data_out() // Output data from the buffer
 );
 res_buffer2 #(
     .BIT_DEPTH(BIT_DEPTH),
@@ -77,7 +71,7 @@ res_buffer2 #(
     .data_in(sum2), // Input data to be stored
     .wr_addr(out_dest_addr), // Placeholder for write address
     .wr_en(dest_wr_en), // Write enable signal
-    .data_out(rd_data) // Output data from the buffer
+    .data_out() // Output data from the buffer
 );
 kernel_reg #(
     .BIT_DEPTH(BIT_DEPTH),
@@ -90,24 +84,4 @@ kernel_reg #(
     .kernel_addr(kernel_addr) // Kernel address input
 );
 
-endmodule
-module res_buffer2 #(
-    parameter BIT_DEPTH = 8,
-    parameter ADDR_WIDTH = 10
-) (
-    input clk,
-    input [BIT_DEPTH-1:0] data_in, // Input data to be stored
-    input [ADDR_WIDTH-1:0] wr_addr, // Address to write data
-    input wr_en, // Write enable signal
-    output reg [BIT_DEPTH-1:0] data_out // Output data from the buffer
-);
-reg [BIT_DEPTH-1:0] buffer [ADDR_WIDTH-1:0]; // Internal buffer to store data
-
-always @(posedge clk) begin
-    if(wr_en) begin
-        buffer[wr_addr] <= data_in; // Write data to the buffer
-    end
-
-end
-assign data_out = buffer[wr_addr]; // Output data from the buffer
 endmodule

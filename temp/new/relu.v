@@ -1,5 +1,5 @@
 module relu #(
-    parameter BIT_DEPTH = 8,
+    parameter BIT_DEPTH = 8
 ) (
     input [BIT_DEPTH-1:0] din,
     output [BIT_DEPTH-1:0] dout
